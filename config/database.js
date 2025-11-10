@@ -36,9 +36,15 @@ const connectDB = async () => {
         console.log('✅ SQLite Database Connected Successfully');
         console.log('📍 Database File:', dbPath);
         
-        // Sync models - this will create tables with correct schema
-        await sequelize.sync();
-        console.log('✅ Database tables synchronized');
+        // Sync models - force recreate if RESET_DB is true
+        const forceSync = process.env.RESET_DB === 'true';
+        await sequelize.sync({ force: forceSync, alter: !forceSync });
+        
+        if (forceSync) {
+            console.log('✅ Database tables recreated (RESET_DB=true)');
+        } else {
+            console.log('✅ Database tables synchronized');
+        }
 
         // Ensure new permission columns exist on applications table. Some deployments
         // may have an older schema; add missing columns using QueryInterface.

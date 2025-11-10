@@ -29,9 +29,12 @@ const User = sequelize.define('User', {
         allowNull: false
     },
     role: {
-        type: DataTypes.ENUM('jobseeker', 'employer', 'admin'),
+        type: DataTypes.STRING(20),
         allowNull: false,
-        defaultValue: 'jobseeker'
+        defaultValue: 'jobseeker',
+        validate: {
+            isIn: [['jobseeker', 'employer', 'admin']]
+        }
     },
     
     // Job Seeker Fields
