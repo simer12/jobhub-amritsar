@@ -8,6 +8,7 @@ const {
     deleteUser,
     getAllApplications,
     getAllJobs,
+    deleteJob,
     getStats
 } = require('../controllers/adminController');
 
@@ -26,6 +27,7 @@ router.get('/applications', getAllApplications);
 
 // Jobs management
 router.get('/jobs', getAllJobs);
+router.delete('/jobs/:id', deleteJob);
 
 // Dashboard stats
 router.get('/stats', getStats);

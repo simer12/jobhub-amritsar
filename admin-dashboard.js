@@ -93,79 +93,105 @@ function setupEventListeners() {
 // Load dashboard data
 async function loadDashboardData() {
     try {
-        // Load users count
-        const usersResponse = await fetch(`${API_URL}/admin/users`, {
+        // Load stats from admin API
+        const statsResponse = await fetch(`${API_URL}/admin/stats`, {
             headers: { 'Authorization': `Bearer ${authToken}` }
         });
         
-        if (usersResponse.ok) {
-            const users = await usersResponse.json();
-            document.getElementById('totalUsersCount').textContent = users.length;
+        if (statsResponse.ok) {
+            const result = await statsResponse.json();
+            const stats = result.data;
             
-            // Count companies
-            const companies = users.filter(u => u.role === 'employer');
-            document.getElementById('totalCompaniesCount').textContent = companies.length;
+            document.getElementById('totalUsersCount').textContent = stats.users.total;
+            document.getElementById('totalCompaniesCount').textContent = stats.users.employers;
+            document.getElementById('totalJobsCount').textContent = stats.jobs.total;
+            document.getElementById('totalApplicationsCount').textContent = stats.applications.total;
         }
         
-        // Load jobs count
-        const jobsResponse = await fetch(`${API_URL}/jobs`);
-        if (jobsResponse.ok) {
-            const data = await jobsResponse.json();
-            document.getElementById('totalJobsCount').textContent = data.total || data.jobs?.length || 0;
-        }
-        
-        // Load applications count
-        const appsResponse = await fetch(`${API_URL}/admin/applications`, {
-            headers: { 'Authorization': `Bearer ${authToken}` }
-        });
-        
-        if (appsResponse.ok) {
-            const applications = await appsResponse.json();
-            document.getElementById('totalApplicationsCount').textContent = applications.length;
-        }
-        
-        // Load recent activities
+        // Load recent activities (from recent users/jobs)
         loadRecentActivities();
         
     } catch (error) {
         console.error('Error loading dashboard data:', error);
-        // Show demo data if API fails
-        showDemoData();
+        showNotification('Failed to load dashboard data', 'error');
     }
 }
 
-// Show demo data
-function showDemoData() {
-    document.getElementById('totalUsersCount').textContent = '127';
-    document.getElementById('totalJobsCount').textContent = '45';
-    document.getElementById('totalApplicationsCount').textContent = '342';
-    document.getElementById('totalCompaniesCount').textContent = '28';
-}
-
 // Load recent activities
-function loadRecentActivities() {
+async function loadRecentActivities() {
     const container = document.getElementById('recentActivities');
     
-    const activities = [
-        { icon: 'fa-user-plus', title: 'New user registered', description: 'Rajesh Kumar joined as job seeker', time: '2 minutes ago' },
-        { icon: 'fa-briefcase', title: 'New job posted', description: 'TechAmr Solutions posted Software Developer', time: '15 minutes ago' },
-        { icon: 'fa-file-alt', title: 'New application', description: 'Priya Singh applied for Marketing Manager', time: '1 hour ago' },
-        { icon: 'fa-building', title: 'Company verified', description: 'Golden Temple Hospitality verified', time: '2 hours ago' },
-        { icon: 'fa-check-circle', title: 'Application shortlisted', description: 'Candidate shortlisted for Full Stack Developer', time: '3 hours ago' }
-    ];
+    try {
+        // Get recent users
+        const usersResponse = await fetch(`${API_URL}/admin/users`, {
+            headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        
+        const activities = [];
+        
+        if (usersResponse.ok) {
+            const result = await usersResponse.json();
+            const recentUsers = result.data.slice(0, 3);
+            
+            recentUsers.forEach(user => {
+                const timeAgo = getTimeAgo(new Date(user.createdAt));
+                activities.push({
+                    icon: user.role === 'employer' ? 'fa-building' : 'fa-user-plus',
+                    title: `New ${user.role} registered`,
+                    description: `${user.name} joined as ${user.role}`,
+                    time: timeAgo
+                });
+            });
+        }
+        
+        // Get recent jobs
+        const jobsResponse = await fetch(`${API_URL}/admin/jobs`, {
+            headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        
+        if (jobsResponse.ok) {
+            const result = await jobsResponse.json();
+            const recentJobs = result.data.slice(0, 2);
+            
+            recentJobs.forEach(job => {
+                const timeAgo = getTimeAgo(new Date(job.createdAt));
+                activities.push({
+                    icon: 'fa-briefcase',
+                    title: 'New job posted',
+                    description: `${job.companyName} posted ${job.title}`,
+                    time: timeAgo
+                });
+            });
+        }
+        
+        container.innerHTML = activities.map(activity => `
+            <div class="activity-item">
+                <div class="activity-icon">
+                    <i class="fas ${activity.icon}"></i>
+                </div>
+                <div class="activity-content">
+                    <h4>${activity.title}</h4>
+                    <p>${activity.description}</p>
+                    <small style="color: #999;">${activity.time}</small>
+                </div>
+            </div>
+        `).join('');
+        
+    } catch (error) {
+        console.error('Error loading activities:', error);
+        container.innerHTML = '<p style="color: #666;">No recent activities</p>';
+    }
+}
+
+// Helper function to get time ago
+function getTimeAgo(date) {
+    const seconds = Math.floor((new Date() - date) / 1000);
     
-    container.innerHTML = activities.map(activity => `
-        <div class="activity-item">
-            <div class="activity-icon">
-                <i class="fas ${activity.icon}"></i>
-            </div>
-            <div class="activity-content">
-                <h4>${activity.title}</h4>
-                <p>${activity.description}</p>
-                <small style="color: #999;">${activity.time}</small>
-            </div>
-        </div>
-    `).join('');
+    if (seconds < 60) return 'Just now';
+    if (seconds < 3600) return `${Math.floor(seconds / 60)} minutes ago`;
+    if (seconds < 86400) return `${Math.floor(seconds / 3600)} hours ago`;
+    if (seconds < 604800) return `${Math.floor(seconds / 86400)} days ago`;
+    return date.toLocaleDateString();
 }
 
 // Load page specific data
@@ -206,7 +232,8 @@ async function loadAllUsers() {
             throw new Error('Failed to load users');
         }
         
-        const users = await response.json();
+        const result = await response.json();
+        const users = result.data;
         const container = document.getElementById('usersList');
         
         if (!users || users.length === 0) {
@@ -215,7 +242,7 @@ async function loadAllUsers() {
         }
         
         container.innerHTML = `
-            <table>
+            <table class="data-table">
                 <thead>
                     <tr>
                         <th>ID</th>
@@ -223,6 +250,7 @@ async function loadAllUsers() {
                         <th>Email</th>
                         <th>Phone</th>
                         <th>Role</th>
+                        <th>Status</th>
                         <th>Joined Date</th>
                         <th>Actions</th>
                     </tr>
@@ -235,20 +263,23 @@ async function loadAllUsers() {
                             <td>${user.email}</td>
                             <td>${user.phone || 'N/A'}</td>
                             <td><span class="status-badge ${user.role}">${user.role}</span></td>
+                            <td><span class="status-badge ${user.isActive ? 'active' : 'inactive'}">${user.isActive ? 'Active' : 'Inactive'}</span></td>
                             <td>${new Date(user.createdAt).toLocaleDateString()}</td>
                             <td>
                                 <button class="btn-secondary btn-sm" onclick="viewUser(${user.id})">View</button>
-                                <button class="btn-danger btn-sm" onclick="suspendUser(${user.id})">Suspend</button>
+                                ${!user.isVerified ? `<button class="btn-primary btn-sm" onclick="verifyUser(${user.id})">Verify</button>` : ''}
+                                <button class="btn-danger btn-sm" onclick="deleteUser(${user.id})">Delete</button>
                             </td>
                         </tr>
                     `).join('')}
                 </tbody>
             </table>
         `;
+        
     } catch (error) {
         console.error('Error loading users:', error);
         document.getElementById('usersList').innerHTML = 
-            '<p style="text-align: center; color: #ef4444; padding: 40px;">Error loading users. Admin API not yet implemented.</p>';
+            '<p style="text-align: center; color: #f44336; padding: 40px;">Error loading users. Please try again.</p>';
     }
 }
 
@@ -263,16 +294,17 @@ async function loadJobSeekers() {
             throw new Error('Failed to load job seekers');
         }
         
-        const users = await response.json();
-        const jobseekers = users.filter(u => u.role === 'jobseeker');
+        const result = await response.json();
+        const jobseekers = result.data;
         
+        // Update stats
         document.getElementById('jobseekersTotal').textContent = jobseekers.length;
-        document.getElementById('jobseekersActive').textContent = jobseekers.length;
+        document.getElementById('jobseekersActive').textContent = jobseekers.filter(u => u.isActive).length;
+        
+        const monthAgo = new Date();
+        monthAgo.setMonth(monthAgo.getMonth() - 1);
         document.getElementById('jobseekersNew').textContent = jobseekers.filter(u => {
-            const joinDate = new Date(u.createdAt);
-            const monthAgo = new Date();
-            monthAgo.setMonth(monthAgo.getMonth() - 1);
-            return joinDate > monthAgo;
+            return new Date(u.createdAt) > monthAgo;
         }).length;
         
         const container = document.getElementById('jobseekersList');
@@ -283,13 +315,15 @@ async function loadJobSeekers() {
         }
         
         container.innerHTML = `
-            <table>
+            <table class="data-table">
                 <thead>
                     <tr>
                         <th>Name</th>
                         <th>Email</th>
                         <th>Phone</th>
                         <th>Skills</th>
+                        <th>Experience</th>
+                        <th>Status</th>
                         <th>Joined Date</th>
                         <th>Actions</th>
                     </tr>
@@ -300,10 +334,13 @@ async function loadJobSeekers() {
                             <td>${user.name}</td>
                             <td>${user.email}</td>
                             <td>${user.phone || 'N/A'}</td>
-                            <td>${user.skills?.slice(0, 3).join(', ') || 'N/A'}</td>
+                            <td>${user.skills ? (Array.isArray(user.skills) ? user.skills.slice(0, 2).join(', ') : user.skills) : 'N/A'}</td>
+                            <td>${user.experience || 'N/A'}</td>
+                            <td><span class="status-badge ${user.isActive ? 'active' : 'inactive'}">${user.isActive ? 'Active' : 'Inactive'}</span></td>
                             <td>${new Date(user.createdAt).toLocaleDateString()}</td>
                             <td>
                                 <button class="btn-secondary btn-sm" onclick="viewUser(${user.id})">View</button>
+                                <button class="btn-danger btn-sm" onclick="deleteUser(${user.id})">Delete</button>
                             </td>
                         </tr>
                     `).join('')}
@@ -313,7 +350,7 @@ async function loadJobSeekers() {
     } catch (error) {
         console.error('Error loading job seekers:', error);
         document.getElementById('jobseekersList').innerHTML = 
-            '<p style="text-align: center; color: #ef4444; padding: 40px;">Error loading job seekers. Admin API not yet implemented.</p>';
+            '<p style="text-align: center; color: #f44336; padding: 40px;">Error loading job seekers.</p>';
     }
 }
 
@@ -328,12 +365,12 @@ async function loadRecruiters() {
             throw new Error('Failed to load recruiters');
         }
         
-        const users = await response.json();
-        const recruiters = users.filter(u => u.role === 'employer');
+        const result = await response.json();
+        const recruiters = result.data;
         
         document.getElementById('recruitersTotal').textContent = recruiters.length;
-        document.getElementById('recruitersVerified').textContent = recruiters.length;
-        document.getElementById('recruitersPending').textContent = '0';
+        document.getElementById('recruitersVerified').textContent = recruiters.filter(r => r.isVerified).length;
+        document.getElementById('recruitersPending').textContent = recruiters.filter(r => !r.isVerified).length;
         
         const container = document.getElementById('recruitersList');
         
@@ -343,13 +380,14 @@ async function loadRecruiters() {
         }
         
         container.innerHTML = `
-            <table>
+            <table class="data-table">
                 <thead>
                     <tr>
                         <th>Company Name</th>
+                        <th>Contact Person</th>
                         <th>Email</th>
                         <th>Phone</th>
-                        <th>Jobs Posted</th>
+                        <th>Status</th>
                         <th>Joined Date</th>
                         <th>Actions</th>
                     </tr>
@@ -358,13 +396,15 @@ async function loadRecruiters() {
                     ${recruiters.map(user => `
                         <tr>
                             <td><strong>${user.companyName || user.name}</strong></td>
+                            <td>${user.name}</td>
                             <td>${user.email}</td>
                             <td>${user.phone || 'N/A'}</td>
-                            <td>0</td>
+                            <td><span class="status-badge ${user.isVerified ? 'verified' : 'pending'}">${user.isVerified ? 'Verified' : 'Pending'}</span></td>
                             <td>${new Date(user.createdAt).toLocaleDateString()}</td>
                             <td>
                                 <button class="btn-secondary btn-sm" onclick="viewUser(${user.id})">View</button>
-                                <button class="btn-primary btn-sm" onclick="verifyCompany(${user.id})">Verify</button>
+                                ${!user.isVerified ? `<button class="btn-primary btn-sm" onclick="verifyUser(${user.id})">Verify</button>` : ''}
+                                <button class="btn-danger btn-sm" onclick="deleteUser(${user.id})">Delete</button>
                             </td>
                         </tr>
                     `).join('')}
@@ -374,16 +414,23 @@ async function loadRecruiters() {
     } catch (error) {
         console.error('Error loading recruiters:', error);
         document.getElementById('recruitersList').innerHTML = 
-            '<p style="text-align: center; color: #ef4444; padding: 40px;">Error loading recruiters. Admin API not yet implemented.</p>';
+            '<p style="text-align: center; color: #f44336; padding: 40px;">Error loading recruiters.</p>';
     }
 }
 
 // Load all jobs
 async function loadAllJobs() {
     try {
-        const response = await fetch(`${API_URL}/jobs`);
-        const data = await response.json();
-        const jobs = data.jobs || [];
+        const response = await fetch(`${API_URL}/admin/jobs`, {
+            headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to load jobs');
+        }
+        
+        const result = await response.json();
+        const jobs = result.data;
         
         const container = document.getElementById('jobsList');
         
@@ -393,13 +440,14 @@ async function loadAllJobs() {
         }
         
         container.innerHTML = `
-            <table>
+            <table class="data-table">
                 <thead>
                     <tr>
                         <th>Job Title</th>
                         <th>Company</th>
                         <th>Type</th>
                         <th>Location</th>
+                        <th>Status</th>
                         <th>Applications</th>
                         <th>Posted Date</th>
                         <th>Actions</th>
@@ -410,12 +458,13 @@ async function loadAllJobs() {
                         <tr>
                             <td><strong>${job.title}</strong></td>
                             <td>${job.companyName}</td>
-                            <td>${job.type}</td>
-                            <td>${job.location}</td>
-                            <td>${job.Applications?.length || 0}</td>
+                            <td>${job.jobType || 'N/A'}</td>
+                            <td>${job.location?.city || 'N/A'}</td>
+                            <td><span class="status-badge ${job.status}">${job.status}</span></td>
+                            <td>${job.applicationCount || 0}</td>
                             <td>${new Date(job.createdAt).toLocaleDateString()}</td>
                             <td>
-                                <button class="btn-secondary btn-sm" onclick="viewJob(${job.id})">View</button>
+                                <button class="btn-secondary btn-sm" onclick="window.open('/job-details.html?id=${job.id}', '_blank')">View</button>
                                 <button class="btn-danger btn-sm" onclick="deleteJobAdmin(${job.id})">Delete</button>
                             </td>
                         </tr>
@@ -425,6 +474,8 @@ async function loadAllJobs() {
         `;
     } catch (error) {
         console.error('Error loading jobs:', error);
+        document.getElementById('jobsList').innerHTML = 
+            '<p style="text-align: center; color: #f44336; padding: 40px;">Error loading jobs.</p>';
     }
 }
 
@@ -439,7 +490,8 @@ async function loadAllApplications() {
             throw new Error('Failed to load applications');
         }
         
-        const applications = await response.json();
+        const result = await response.json();
+        const applications = result.data;
         const container = document.getElementById('applicationsList');
         
         if (!applications || applications.length === 0) {
@@ -448,11 +500,11 @@ async function loadAllApplications() {
         }
         
         container.innerHTML = `
-            <table>
+            <table class="data-table">
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th>Applicant</th>
+                        <th>Job Seeker</th>
                         <th>Job Title</th>
                         <th>Company</th>
                         <th>Status</th>
@@ -463,11 +515,11 @@ async function loadAllApplications() {
                 <tbody>
                     ${applications.map(app => `
                         <tr>
-                            <td>${app.id}</td>
-                            <td>${app.User?.name || 'N/A'}</td>
-                            <td>${app.Job?.title || 'N/A'}</td>
-                            <td>${app.Job?.companyName || 'N/A'}</td>
-                            <td><span class="status-badge ${app.status}">${app.status.replace('_', ' ')}</span></td>
+                            <td>#${app.id}</td>
+                            <td>${app.jobSeekerName || 'N/A'}</td>
+                            <td>${app.jobTitle || 'N/A'}</td>
+                            <td>${app.companyName || 'N/A'}</td>
+                            <td><span class="status-badge ${app.status}">${app.status}</span></td>
                             <td>${new Date(app.createdAt).toLocaleDateString()}</td>
                             <td>
                                 <button class="btn-secondary btn-sm" onclick="viewApplication(${app.id})">View</button>
@@ -480,7 +532,7 @@ async function loadAllApplications() {
     } catch (error) {
         console.error('Error loading applications:', error);
         document.getElementById('applicationsList').innerHTML = 
-            '<p style="text-align: center; color: #ef4444; padding: 40px;">Error loading applications. Admin API not yet implemented.</p>';
+            '<p style="text-align: center; color: #f44336; padding: 40px;">Error loading applications.</p>';
     }
 }
 
@@ -649,30 +701,134 @@ function denyAccessRequest(applicationId) {
 }
 
 // Admin actions
-function viewUser(userId) {
-    alert('View user details for ID: ' + userId);
+async function viewUser(userId) {
+    try {
+        const response = await fetch(`${API_URL}/admin/users/${userId}`, {
+            headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to load user details');
+        }
+        
+        const result = await response.json();
+        const user = result.data;
+        
+        alert(`User Details:\n\nName: ${user.name}\nEmail: ${user.email}\nRole: ${user.role}\nStatus: ${user.isVerified ? 'Verified' : 'Not Verified'}\nJoined: ${new Date(user.createdAt).toLocaleDateString()}`);
+    } catch (error) {
+        console.error('Error viewing user:', error);
+        alert('Error loading user details');
+    }
 }
 
-function suspendUser(userId) {
+async function suspendUser(userId) {
     if (confirm('Are you sure you want to suspend this user?')) {
-        alert('User suspended: ' + userId);
+        try {
+            const response = await fetch(`${API_URL}/admin/users/${userId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authToken}`
+                },
+                body: JSON.stringify({ isActive: false })
+            });
+            
+            if (response.ok) {
+                alert('User suspended successfully');
+                loadAllUsers(); // Reload the list
+            } else {
+                const error = await response.json();
+                alert('Error: ' + error.message);
+            }
+        } catch (error) {
+            console.error('Error suspending user:', error);
+            alert('Error suspending user');
+        }
+    }
+}
+
+async function verifyUser(userId) {
+    if (confirm('Verify this user?')) {
+        try {
+            const response = await fetch(`${API_URL}/admin/users/${userId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authToken}`
+                },
+                body: JSON.stringify({ isVerified: true })
+            });
+            
+            if (response.ok) {
+                alert('User verified successfully');
+                loadAllUsers();
+                loadRecruiters(); // Also reload recruiters list if showing
+            } else {
+                const error = await response.json();
+                alert('Error: ' + error.message);
+            }
+        } catch (error) {
+            console.error('Error verifying user:', error);
+            alert('Error verifying user');
+        }
+    }
+}
+
+async function deleteUser(userId) {
+    if (confirm('Are you sure you want to delete this user? This action cannot be undone!')) {
+        try {
+            const response = await fetch(`${API_URL}/admin/users/${userId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${authToken}` }
+            });
+            
+            if (response.ok) {
+                alert('User deleted successfully');
+                loadAllUsers();
+                loadDashboardData(); // Refresh stats
+            } else {
+                const error = await response.json();
+                alert('Error: ' + error.message);
+            }
+        } catch (error) {
+            console.error('Error deleting user:', error);
+            alert('Error deleting user');
+        }
     }
 }
 
 function verifyCompany(userId) {
-    alert('Company verified: ' + userId);
+    verifyUser(userId); // Alias for verifyUser
 }
 
 function viewJob(jobId) {
-    alert('View job details for ID: ' + jobId);
+    // Open job details in new tab/window
+    window.open(`/job-details.html?id=${jobId}`, '_blank');
 }
 
-function deleteJobAdmin(jobId) {
-    if (confirm('Are you sure you want to delete this job?')) {
-        alert('Job deleted: ' + jobId);
+async function deleteJobAdmin(jobId) {
+    if (confirm('Are you sure you want to delete this job? This will also delete all applications!')) {
+        try {
+            const response = await fetch(`${API_URL}/admin/jobs/${jobId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${authToken}` }
+            });
+            
+            if (response.ok) {
+                alert('Job deleted successfully');
+                loadAllJobs();
+                loadDashboardData(); // Refresh stats
+            } else {
+                const error = await response.json();
+                alert('Error: ' + error.message);
+            }
+        } catch (error) {
+            console.error('Error deleting job:', error);
+            alert('Error deleting job');
+        }
     }
 }
 
 function viewApplication(appId) {
-    alert('View application details for ID: ' + appId);
+    alert('View application details for ID: ' + appId + '\n\n(Application details view coming soon)');
 }

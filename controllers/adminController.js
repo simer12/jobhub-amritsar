@@ -260,4 +260,40 @@ exports.getStats = async (req, res) => {
     }
 };
 
+// @desc    Delete job
+// @route   DELETE /api/admin/jobs/:id
+// @access  Private/Admin
+exports.deleteJob = async (req, res) => {
+    try {
+        const job = await Job.findByPk(req.params.id);
+        
+        if (!job) {
+            return res.status(404).json({
+                success: false,
+                message: 'Job not found'
+            });
+        }
+        
+        // Delete all applications associated with this job first
+        await Application.destroy({
+            where: { jobId: req.params.id }
+        });
+        
+        // Delete the job
+        await job.destroy();
+        
+        res.status(200).json({
+            success: true,
+            message: 'Job and all associated applications deleted successfully'
+        });
+    } catch (error) {
+        console.error('Delete job error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error deleting job',
+            error: error.message
+        });
+    }
+};
+
 module.exports = exports;
