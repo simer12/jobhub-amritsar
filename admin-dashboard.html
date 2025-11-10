@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master Admin Dashboard - JobHub Amritsar</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="dashboard-styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar admin-sidebar">
+            <div class="logo">
+                <h2><i class="fas fa-shield-alt"></i> JobHub Admin</h2>
+                <p class="user-role">Master Admin</p>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#dashboard" class="nav-item active" data-page="dashboard">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </a>
+                <a href="#users" class="nav-item" data-page="users">
+                    <i class="fas fa-users"></i> Users Management
+                </a>
+                <a href="#jobseekers" class="nav-item" data-page="jobseekers">
+                    <i class="fas fa-user-tie"></i> Job Seekers
+                </a>
+                <a href="#recruiters" class="nav-item" data-page="recruiters">
+                    <i class="fas fa-building"></i> Recruiters
+                </a>
+                <a href="#jobs" class="nav-item" data-page="jobs">
+                    <i class="fas fa-briefcase"></i> Jobs Management
+                </a>
+                <a href="#applications" class="nav-item" data-page="applications">
+                    <i class="fas fa-file-alt"></i> Applications
+                </a>
+                <a href="#access-requests" class="nav-item" data-page="access-requests">
+                    <i class="fas fa-unlock-alt"></i> Access Requests
+                </a>
+                <a href="#reports" class="nav-item" data-page="reports">
+                    <i class="fas fa-chart-bar"></i> Reports
+                </a>
+                <a href="#analytics" class="nav-item" data-page="analytics">
+                    <i class="fas fa-chart-line"></i> Analytics
+                </a>
+                <a href="#content" class="nav-item" data-page="content">
+                    <i class="fas fa-newspaper"></i> Content Management
+                </a>
+                <a href="#system" class="nav-item" data-page="system">
+                    <i class="fas fa-server"></i> System Settings
+                </a>
+                <a href="#logs" class="nav-item" data-page="logs">
+                    <i class="fas fa-list-alt"></i> Activity Logs
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <a href="/" class="nav-item">
+                    <i class="fas fa-arrow-left"></i> Back to Site
+                </a>
+                <a href="#" class="nav-item" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="dashboard-header">
+                <div class="header-left">
+                    <button class="menu-toggle" id="menuToggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h1 id="pageTitle">Master Dashboard</h1>
+                </div>
+                <div class="header-right">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Search anything...">
+                    </div>
+                    <button class="notification-btn">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge">15</span>
+                    </button>
+                    <div class="user-menu">
+                        <img src="https://ui-avatars.com/api/?name=Admin&background=dc2626&color=fff" alt="Admin">
+                        <span>Admin</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard Page -->
+            <div class="page active" id="dashboard">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon blue">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="totalUsersCount">0</h3>
+                            <p>Total Users</p>
+                            <small class="trend positive"><i class="fas fa-arrow-up"></i> 12% this month</small>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon green">
+                            <i class="fas fa-briefcase"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="totalJobsCount">0</h3>
+                            <p>Total Jobs</p>
+                            <small class="trend positive"><i class="fas fa-arrow-up"></i> 8% this month</small>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon orange">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="totalApplicationsCount">0</h3>
+                            <p>Total Applications</p>
+                            <small class="trend positive"><i class="fas fa-arrow-up"></i> 15% this month</small>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon purple">
+                            <i class="fas fa-building"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="totalCompaniesCount">0</h3>
+                            <p>Companies</p>
+                            <small class="trend positive"><i class="fas fa-arrow-up"></i> 5% this month</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Platform Overview</h3>
+                            <select id="overview-period">
+                                <option value="7">Last 7 days</option>
+                                <option value="30">Last 30 days</option>
+                                <option value="90">Last 90 days</option>
+                            </select>
+                        </div>
+                        <canvas id="platformChart"></canvas>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Recent Activities</h3>
+                        </div>
+                        <div class="activities-list" id="recentActivities">
+                            <div class="loading">Loading activities...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>User Distribution</h3>
+                        </div>
+                        <canvas id="userDistributionChart"></canvas>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Top Performing Jobs</h3>
+                        </div>
+                        <div class="top-jobs-list" id="topJobsList">
+                            <div class="loading">Loading data...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Management Page -->
+            <div class="page" id="users">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Users Management</h3>
+                        <div class="filters">
+                            <select id="filter-user-role">
+                                <option value="">All Roles</option>
+                                <option value="jobseeker">Job Seekers</option>
+                                <option value="employer">Employers</option>
+                                <option value="admin">Admins</option>
+                            </select>
+                            <select id="filter-user-status">
+                                <option value="">All Status</option>
+                                <option value="active">Active</option>
+                                <option value="suspended">Suspended</option>
+                                <option value="deleted">Deleted</option>
+                            </select>
+                            <button class="btn-primary btn-sm" id="addUserBtn">
+                                <i class="fas fa-plus"></i> Add User
+                            </button>
+                        </div>
+                    </div>
+                    <div class="users-table" id="usersList">
+                        <div class="loading">Loading users...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Job Seekers Page -->
+            <div class="page" id="jobseekers">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Job Seekers</h3>
+                        <div class="stats-mini">
+                            <div class="stat-mini">
+                                <span>Total:</span>
+                                <strong id="jobseekersTotal">0</strong>
+                            </div>
+                            <div class="stat-mini">
+                                <span>Active:</span>
+                                <strong id="jobseekersActive">0</strong>
+                            </div>
+                            <div class="stat-mini">
+                                <span>This Month:</span>
+                                <strong id="jobseekersNew">0</strong>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="users-table" id="jobseekersList">
+                        <div class="loading">Loading job seekers...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recruiters Page -->
+            <div class="page" id="recruiters">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Recruiters / Companies</h3>
+                        <div class="stats-mini">
+                            <div class="stat-mini">
+                                <span>Total:</span>
+                                <strong id="recruitersTotal">0</strong>
+                            </div>
+                            <div class="stat-mini">
+                                <span>Verified:</span>
+                                <strong id="recruitersVerified">0</strong>
+                            </div>
+                            <div class="stat-mini">
+                                <span>Pending:</span>
+                                <strong id="recruitersPending">0</strong>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="users-table" id="recruitersList">
+                        <div class="loading">Loading recruiters...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Jobs Management Page -->
+            <div class="page" id="jobs">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Jobs Management</h3>
+                        <div class="filters">
+                            <select id="filter-job-status">
+                                <option value="">All Status</option>
+                                <option value="active">Active</option>
+                                <option value="closed">Closed</option>
+                                <option value="pending">Pending Approval</option>
+                            </select>
+                            <select id="filter-job-type">
+                                <option value="">All Types</option>
+                                <option value="fulltime">Full Time</option>
+                                <option value="parttime">Part Time</option>
+                                <option value="contract">Contract</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="jobs-table" id="jobsList">
+                        <div class="loading">Loading jobs...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Applications Page -->
+            <div class="page" id="applications">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Applications Overview</h3>
+                        <div class="filters">
+                            <select id="filter-app-status">
+                                <option value="">All Status</option>
+                                <option value="pending">Pending</option>
+                                <option value="reviewing">Reviewing</option>
+                                <option value="shortlisted">Shortlisted</option>
+                                <option value="rejected">Rejected</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="applications-table" id="applicationsList">
+                        <div class="loading">Loading applications...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Access Requests Page -->
+            <div class="page" id="access-requests">
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-unlock-alt"></i> Applicant Details Access Requests</h3>
+                        <p style="color: #888; font-size: 14px; margin-top: 10px;">
+                            Recruiters requesting permission to view real applicant contact information
+                        </p>
+                    </div>
+                    <div class="applications-table" id="accessRequestsList">
+                        <div class="loading">Loading access requests...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reports Page -->
+            <div class="page" id="reports">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Generate Reports</h3>
+                        <button class="btn-primary btn-sm" id="generateReportBtn">
+                            <i class="fas fa-download"></i> Generate Report
+                        </button>
+                    </div>
+                    <div class="reports-grid">
+                        <div class="report-card">
+                            <i class="fas fa-users"></i>
+                            <h4>User Growth Report</h4>
+                            <p>Analyze user registration trends</p>
+                            <button class="btn-secondary btn-sm">Generate</button>
+                        </div>
+                        <div class="report-card">
+                            <i class="fas fa-briefcase"></i>
+                            <h4>Jobs Report</h4>
+                            <p>Job posting and performance metrics</p>
+                            <button class="btn-secondary btn-sm">Generate</button>
+                        </div>
+                        <div class="report-card">
+                            <i class="fas fa-chart-line"></i>
+                            <h4>Application Analytics</h4>
+                            <p>Application conversion rates</p>
+                            <button class="btn-secondary btn-sm">Generate</button>
+                        </div>
+                        <div class="report-card">
+                            <i class="fas fa-building"></i>
+                            <h4>Company Performance</h4>
+                            <p>Top performing companies</p>
+                            <button class="btn-secondary btn-sm">Generate</button>
+                        </div>
+                        <div class="report-card">
+                            <i class="fas fa-money-bill-wave"></i>
+                            <h4>Revenue Report</h4>
+                            <p>Financial overview and projections</p>
+                            <button class="btn-secondary btn-sm">Generate</button>
+                        </div>
+                        <div class="report-card">
+                            <i class="fas fa-globe"></i>
+                            <h4>Platform Overview</h4>
+                            <p>Complete platform statistics</p>
+                            <button class="btn-secondary btn-sm">Generate</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics Page -->
+            <div class="page" id="analytics">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Advanced Analytics</h3>
+                        <select id="analytics-timeframe">
+                            <option value="7">Last 7 days</option>
+                            <option value="30">Last 30 days</option>
+                            <option value="90">Last 90 days</option>
+                            <option value="365">Last Year</option>
+                        </select>
+                    </div>
+                    <div class="analytics-grid">
+                        <div class="card">
+                            <h4>User Acquisition</h4>
+                            <canvas id="acquisitionChart"></canvas>
+                        </div>
+                        <div class="card">
+                            <h4>Job Success Rate</h4>
+                            <canvas id="successChart"></canvas>
+                        </div>
+                        <div class="card">
+                            <h4>Application Funnel</h4>
+                            <canvas id="funnelChart"></canvas>
+                        </div>
+                        <div class="card">
+                            <h4>Revenue Growth</h4>
+                            <canvas id="revenueChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content Management Page -->
+            <div class="page" id="content">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Content Management</h3>
+                        <button class="btn-primary btn-sm">
+                            <i class="fas fa-plus"></i> Add Content
+                        </button>
+                    </div>
+                    <div class="content-tabs">
+                        <button class="tab-btn active" data-tab="categories">Categories</button>
+                        <button class="tab-btn" data-tab="skills">Skills</button>
+                        <button class="tab-btn" data-tab="locations">Locations</button>
+                        <button class="tab-btn" data-tab="faqs">FAQs</button>
+                    </div>
+                    <div class="tab-content">
+                        <div class="tab-pane active" id="categories">
+                            <div class="content-list">
+                                <div class="loading">Loading categories...</div>
+                            </div>
+                        </div>
+                        <div class="tab-pane" id="skills">
+                            <div class="content-list">
+                                <div class="loading">Loading skills...</div>
+                            </div>
+                        </div>
+                        <div class="tab-pane" id="locations">
+                            <div class="content-list">
+                                <div class="loading">Loading locations...</div>
+                            </div>
+                        </div>
+                        <div class="tab-pane" id="faqs">
+                            <div class="content-list">
+                                <div class="loading">Loading FAQs...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Settings Page -->
+            <div class="page" id="system">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>System Settings</h3>
+                    </div>
+                    <div class="settings-sections">
+                        <div class="settings-section">
+                            <h4>General Settings</h4>
+                            <div class="form-group">
+                                <label>Site Name</label>
+                                <input type="text" value="JobHub Amritsar">
+                            </div>
+                            <div class="form-group">
+                                <label>Site Email</label>
+                                <input type="email" value="admin@jobhub-amritsar.com">
+                            </div>
+                            <div class="form-group">
+                                <label>Contact Number</label>
+                                <input type="tel" value="+91-183-XXXXXXX">
+                            </div>
+                        </div>
+
+                        <div class="settings-section">
+                            <h4>Platform Controls</h4>
+                            <div class="form-group">
+                                <label>User Registration</label>
+                                <label class="switch">
+                                    <input type="checkbox" checked>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            <div class="form-group">
+                                <label>Job Posting Approval</label>
+                                <label class="switch">
+                                    <input type="checkbox">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            <div class="form-group">
+                                <label>Maintenance Mode</label>
+                                <label class="switch">
+                                    <input type="checkbox">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="settings-section">
+                            <h4>Email Configuration</h4>
+                            <div class="form-group">
+                                <label>SMTP Host</label>
+                                <input type="text" placeholder="smtp.example.com">
+                            </div>
+                            <div class="form-group">
+                                <label>SMTP Port</label>
+                                <input type="number" placeholder="587">
+                            </div>
+                            <div class="form-group">
+                                <label>SMTP Username</label>
+                                <input type="text" placeholder="username@example.com">
+                            </div>
+                        </div>
+
+                        <div class="settings-section">
+                            <h4>Security Settings</h4>
+                            <div class="form-group">
+                                <label>Two-Factor Authentication</label>
+                                <label class="switch">
+                                    <input type="checkbox">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            <div class="form-group">
+                                <label>Session Timeout (minutes)</label>
+                                <input type="number" value="30">
+                            </div>
+                            <div class="form-group">
+                                <label>Max Login Attempts</label>
+                                <input type="number" value="5">
+                            </div>
+                        </div>
+
+                        <button class="btn-primary">Save Settings</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Activity Logs Page -->
+            <div class="page" id="logs">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Activity Logs</h3>
+                        <div class="filters">
+                            <select id="filter-log-type">
+                                <option value="">All Types</option>
+                                <option value="user">User Actions</option>
+                                <option value="system">System Events</option>
+                                <option value="security">Security</option>
+                                <option value="error">Errors</option>
+                            </select>
+                            <input type="date" id="filter-log-date">
+                            <button class="btn-secondary btn-sm">
+                                <i class="fas fa-download"></i> Export
+                            </button>
+                        </div>
+                    </div>
+                    <div class="logs-table" id="logsList">
+                        <div class="loading">Loading logs...</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="admin-dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Selector - JobHub Amritsar</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 50px;
+            font-size: 42px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .dashboards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .dashboard-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s, box-shadow 0.3s;
+            text-align: center;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .dashboard-icon {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 25px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            color: white;
+        }
+
+        .dashboard-icon.blue {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .dashboard-icon.orange {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+
+        .dashboard-icon.red {
+            background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+        }
+
+        .dashboard-card h2 {
+            font-size: 28px;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .dashboard-card p {
+            color: #666;
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+
+        .features {
+            text-align: left;
+            margin-bottom: 25px;
+        }
+
+        .features h3 {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .features ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .features li {
+            color: #666;
+            font-size: 14px;
+            padding: 5px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+
+        .features li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #10b981;
+            font-weight: bold;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 15px 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 30px;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn.orange {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            box-shadow: 0 5px 15px rgba(245, 158, 11, 0.3);
+        }
+
+        .btn.red {
+            background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+            box-shadow: 0 5px 15px rgba(220, 38, 38, 0.3);
+        }
+
+        .info-box {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            margin-top: 40px;
+        }
+
+        .info-box h3 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .credentials {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .credential-card {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+        }
+
+        .credential-card h4 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        .credential-card p {
+            color: #666;
+            font-size: 14px;
+            margin: 5px 0;
+            font-family: 'Courier New', monospace;
+        }
+
+        .back-btn {
+            display: block;
+            text-align: center;
+            margin-top: 30px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 32px;
+            }
+
+            .dashboards-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Choose Your Dashboard</h1>
+
+        <div class="dashboards-grid">
+            <!-- Job Seeker Dashboard -->
+            <div class="dashboard-card">
+                <div class="dashboard-icon blue">
+                    👤
+                </div>
+                <h2>Job Seeker</h2>
+                <p>Access your personalized job search dashboard</p>
+                <div class="features">
+                    <h3>Key Features:</h3>
+                    <ul>
+                        <li>Browse & Apply to Jobs</li>
+                        <li>Track Applications</li>
+                        <li>Manage Profile & Resume</li>
+                        <li>Interview Scheduling</li>
+                        <li>Job Recommendations</li>
+                    </ul>
+                </div>
+                <a href="jobseeker-dashboard.html" class="btn">Access Dashboard</a>
+            </div>
+
+            <!-- Recruiter Dashboard -->
+            <div class="dashboard-card">
+                <div class="dashboard-icon orange">
+                    🏢
+                </div>
+                <h2>Recruiter</h2>
+                <p>Manage your company's recruitment process</p>
+                <div class="features">
+                    <h3>Key Features:</h3>
+                    <ul>
+                        <li>Post & Manage Jobs</li>
+                        <li>Review Applications</li>
+                        <li>Shortlist Candidates</li>
+                        <li>Schedule Interviews</li>
+                        <li>Analytics & Reports</li>
+                    </ul>
+                </div>
+                <a href="recruiter-dashboard.html" class="btn orange">Access Dashboard</a>
+            </div>
+
+            <!-- Admin Dashboard -->
+            <div class="dashboard-card">
+                <div class="dashboard-icon red">
+                    🛡️
+                </div>
+                <h2>Master Admin</h2>
+                <p>Complete platform administration and control</p>
+                <div class="features">
+                    <h3>Key Features:</h3>
+                    <ul>
+                        <li>User Management</li>
+                        <li>Job & Application Oversight</li>
+                        <li>Platform Analytics</li>
+                        <li>System Settings</li>
+                        <li>Activity Logs</li>
+                    </ul>
+                </div>
+                <a href="admin-dashboard.html" class="btn red">Access Dashboard</a>
+            </div>
+        </div>
+
+        <div class="info-box">
+            <h3>📝 Test Credentials</h3>
+            <p style="color: #666; margin-bottom: 20px;">Use these credentials to test different dashboards:</p>
+            <div class="credentials">
+                <div class="credential-card">
+                    <h4>👤 Job Seeker</h4>
+                    <p><strong>Email:</strong> amit@example.com</p>
+                    <p><strong>Password:</strong> password123</p>
+                    <p style="margin-top: 10px; font-family: 'Segoe UI'; color: #999; font-size: 12px;">Or create a new account with role: Job Seeker</p>
+                </div>
+                <div class="credential-card">
+                    <h4>🏢 Recruiter</h4>
+                    <p><strong>Email:</strong> rajesh@techamr.com</p>
+                    <p><strong>Password:</strong> password123</p>
+                    <p style="margin-top: 10px; font-family: 'Segoe UI'; color: #999; font-size: 12px;">Or create a new account with role: Employer</p>
+                </div>
+                <div class="credential-card">
+                    <h4>🛡️ Admin</h4>
+                    <p><strong>Email:</strong> admin@jobhub.com</p>
+                    <p><strong>Password:</strong> admin123</p>
+                    <p style="margin-top: 10px; font-family: 'Segoe UI'; color: #999; font-size: 12px;">Admin accounts are pre-configured</p>
+                </div>
+            </div>
+        </div>
+
+        <a href="/" class="back-btn">← Back to Main Site</a>
+    </div>
+</body>
+</html>

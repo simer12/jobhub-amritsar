@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Seeker Dashboard - JobHub Amritsar</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="dashboard-styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <h2><i class="fas fa-briefcase"></i> JobHub</h2>
+                <p class="user-role">Job Seeker</p>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#dashboard" class="nav-item active" data-page="dashboard">
+                    <i class="fas fa-home"></i> Dashboard
+                </a>
+                <a href="#profile" class="nav-item" data-page="profile">
+                    <i class="fas fa-user"></i> My Profile
+                </a>
+                <a href="#browse-jobs" class="nav-item" data-page="browse-jobs">
+                    <i class="fas fa-search"></i> Browse Jobs
+                </a>
+                <a href="#applied-jobs" class="nav-item" data-page="applied-jobs">
+                    <i class="fas fa-file-alt"></i> Applied Jobs
+                </a>
+                <a href="#saved-jobs" class="nav-item" data-page="saved-jobs">
+                    <i class="fas fa-bookmark"></i> Saved Jobs
+                </a>
+                <a href="#resume" class="nav-item" data-page="resume">
+                    <i class="fas fa-file-pdf"></i> My Resume
+                </a>
+                <a href="#interviews" class="nav-item" data-page="interviews">
+                    <i class="fas fa-calendar-check"></i> Interviews
+                </a>
+                <a href="#messages" class="nav-item" data-page="messages">
+                    <i class="fas fa-envelope"></i> Messages
+                    <span class="badge">3</span>
+                </a>
+                <a href="#settings" class="nav-item" data-page="settings">
+                    <i class="fas fa-cog"></i> Settings
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <a href="/" class="nav-item">
+                    <i class="fas fa-arrow-left"></i> Back to Site
+                </a>
+                <a href="#" class="nav-item" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="dashboard-header">
+                <div class="header-left">
+                    <button class="menu-toggle" id="menuToggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h1 id="pageTitle">Dashboard</h1>
+                </div>
+                <div class="header-right">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Search jobs...">
+                    </div>
+                    <button class="notification-btn">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge">5</span>
+                    </button>
+                    <div class="user-menu">
+                        <img src="https://ui-avatars.com/api/?name=User&background=6366f1&color=fff" alt="User">
+                        <span id="userName">Loading...</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard Page -->
+            <div class="page active" id="dashboard">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon blue">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="appliedCount">0</h3>
+                            <p>Applied Jobs</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon green">
+                            <i class="fas fa-bookmark"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="savedCount">0</h3>
+                            <p>Saved Jobs</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon orange">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="interviewCount">0</h3>
+                            <p>Interviews</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon purple">
+                            <i class="fas fa-eye"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="profileViews">0</h3>
+                            <p>Profile Views</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Recent Applications</h3>
+                            <a href="#applied-jobs" class="view-all">View All</a>
+                        </div>
+                        <div class="applications-list" id="recentApplications">
+                            <div class="loading">Loading applications...</div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Recommended Jobs</h3>
+                            <a href="#browse-jobs" class="view-all">View All</a>
+                        </div>
+                        <div class="jobs-list" id="recommendedJobs">
+                            <div class="loading">Loading jobs...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Application Status</h3>
+                    </div>
+                    <canvas id="applicationChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Profile Page -->
+            <div class="page" id="profile">
+                <div class="profile-container">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Personal Information</h3>
+                            <button class="btn-primary btn-sm" id="editProfileBtn">Edit Profile</button>
+                        </div>
+                        <form class="profile-form" id="profileForm">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Full Name</label>
+                                    <input type="text" id="profile-name" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Email</label>
+                                    <input type="email" id="profile-email" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Phone</label>
+                                    <input type="tel" id="profile-phone" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Location</label>
+                                    <input type="text" id="profile-location" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Bio</label>
+                                <textarea id="profile-bio" rows="4"></textarea>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Experience</label>
+                                    <select id="profile-experience">
+                                        <option value="fresher">Fresher</option>
+                                        <option value="1-3">1-3 years</option>
+                                        <option value="3-5">3-5 years</option>
+                                        <option value="5-10">5-10 years</option>
+                                        <option value="10+">10+ years</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Education</label>
+                                    <select id="profile-education">
+                                        <option value="10th">10th</option>
+                                        <option value="12th">12th</option>
+                                        <option value="Graduate">Graduate</option>
+                                        <option value="Post Graduate">Post Graduate</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Skills (comma separated)</label>
+                                <input type="text" id="profile-skills" placeholder="JavaScript, React, Node.js">
+                            </div>
+                            <button type="submit" class="btn-primary">Save Changes</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Browse Jobs Page -->
+            <div class="page" id="browse-jobs">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Browse Jobs in Amritsar</h3>
+                        <div class="filters">
+                            <select id="filter-type">
+                                <option value="">All Types</option>
+                                <option value="fulltime">Full Time</option>
+                                <option value="parttime">Part Time</option>
+                                <option value="contract">Contract</option>
+                            </select>
+                            <select id="filter-experience">
+                                <option value="">All Experience</option>
+                                <option value="fresher">Fresher</option>
+                                <option value="1-3">1-3 years</option>
+                                <option value="3-5">3-5 years</option>
+                                <option value="5-10">5-10 years</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="jobs-grid" id="browseJobsList">
+                        <div class="loading">Loading jobs...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Applied Jobs Page -->
+            <div class="page" id="applied-jobs">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>My Applications</h3>
+                        <select id="filter-status">
+                            <option value="">All Status</option>
+                            <option value="pending">Pending</option>
+                            <option value="reviewing">Reviewing</option>
+                            <option value="shortlisted">Shortlisted</option>
+                            <option value="rejected">Rejected</option>
+                            <option value="interview_scheduled">Interview Scheduled</option>
+                        </select>
+                    </div>
+                    <div class="applications-table" id="appliedJobsList">
+                        <div class="loading">Loading applications...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Saved Jobs Page -->
+            <div class="page" id="saved-jobs">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Saved Jobs</h3>
+                    </div>
+                    <div class="jobs-grid" id="savedJobsList">
+                        <div class="loading">Loading saved jobs...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Resume Page -->
+            <div class="page" id="resume">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>My Resume</h3>
+                    </div>
+                    <div class="resume-upload">
+                        <div class="upload-area" id="resumeUploadArea">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <h3>Upload Your Resume</h3>
+                            <p>Drag and drop or click to browse</p>
+                            <input type="file" id="resumeInput" accept=".pdf,.doc,.docx">
+                        </div>
+                        <div class="resume-preview" id="resumePreview" style="display: none;">
+                            <i class="fas fa-file-pdf"></i>
+                            <div class="resume-info">
+                                <h4 id="resumeName">Resume.pdf</h4>
+                                <p id="resumeSize">2.5 MB</p>
+                            </div>
+                            <button class="btn-danger btn-sm" id="deleteResume">Delete</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interviews Page -->
+            <div class="page" id="interviews">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Upcoming Interviews</h3>
+                    </div>
+                    <div class="interviews-list" id="interviewsList">
+                        <div class="loading">Loading interviews...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Messages Page -->
+            <div class="page" id="messages">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Messages</h3>
+                    </div>
+                    <div class="messages-container">
+                        <div class="message-item">
+                            <i class="fas fa-envelope"></i>
+                            <p>Messages feature coming soon...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Page -->
+            <div class="page" id="settings">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Account Settings</h3>
+                    </div>
+                    <div class="settings-form">
+                        <div class="form-group">
+                            <label>Email Notifications</label>
+                            <label class="switch">
+                                <input type="checkbox" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label>Job Alerts</label>
+                            <label class="switch">
+                                <input type="checkbox" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label>Profile Visibility</label>
+                            <select>
+                                <option>Public</option>
+                                <option>Private</option>
+                            </select>
+                        </div>
+                        <button class="btn-primary">Save Settings</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="jobseeker-dashboard.js"></script>
+</body>
+</html>
