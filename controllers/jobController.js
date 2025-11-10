@@ -196,8 +196,11 @@ exports.getJob = async (req, res) => {
 // @access  Private (Employer)
 exports.createJob = async (req, res) => {
     try {
-        // Add user to req.body
-        req.body.company = req.user.id;
+        console.log('Creating job with data:', req.body);
+        console.log('User:', req.user);
+        
+        // Add company information from logged-in user
+        req.body.companyId = req.user.id;
         req.body.companyName = req.user.companyName || req.user.name;
         req.body.companyLogo = req.user.companyLogo;
 
@@ -205,11 +208,27 @@ exports.createJob = async (req, res) => {
         if (!req.body.location) {
             req.body.location = {
                 city: 'Amritsar',
-                area: ''
+                state: 'Punjab',
+                country: 'India'
+            };
+        } else if (typeof req.body.location === 'string') {
+            // Convert string location to object
+            const parts = req.body.location.split(',').map(s => s.trim());
+            req.body.location = {
+                city: parts[0] || 'Amritsar',
+                state: parts[1] || 'Punjab',
+                country: 'India'
             };
         }
+        
+        // Set default values if not provided
+        if (!req.body.workMode) req.body.workMode = 'office';
+        if (!req.body.educationRequired) req.body.educationRequired = '12th Pass';
+        if (!req.body.status) req.body.status = 'active';
 
         const job = await Job.create(req.body);
+        
+        console.log('Job created successfully:', job.id);
 
         res.status(201).json({
             success: true,

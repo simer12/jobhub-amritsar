@@ -239,23 +239,46 @@ async function handleCompanyProfileUpdate(e) {
 async function handlePostJob(e) {
     e.preventDefault();
     
+    // Parse location
+    const locationText = document.getElementById('job-location').value;
+    const locationParts = locationText.split(',').map(s => s.trim());
+    
+    // Parse requirements from textarea
+    const requirementsText = document.getElementById('job-requirements').value;
+    const requirementsArray = requirementsText 
+        ? requirementsText.split('\n').filter(r => r.trim()).map(r => r.trim())
+        : [];
+    
     const formData = {
         title: document.getElementById('job-title').value,
-        type: document.getElementById('job-type').value,
+        jobType: document.getElementById('job-type').value, // Changed from 'type' to 'jobType'
         category: document.getElementById('job-category').value,
-        location: document.getElementById('job-location').value,
+        location: {
+            city: locationParts[0] || 'Amritsar',
+            state: locationParts[1] || 'Punjab',
+            country: 'India'
+        },
+        workMode: 'office', // Default work mode
         salary: {
             type: document.getElementById('salary-type').value,
             min: parseInt(document.getElementById('salary-min').value),
-            max: parseInt(document.getElementById('salary-max').value)
+            max: parseInt(document.getElementById('salary-max').value),
+            currency: 'INR'
         },
-        experience: document.getElementById('job-experience').value,
+        experienceRequired: document.getElementById('job-experience').value, // Changed from 'experience'
+        educationRequired: '12th Pass', // Default education
         vacancies: parseInt(document.getElementById('job-vacancies').value),
-        skills: document.getElementById('job-skills').value.split(',').map(s => s.trim()),
+        skills: document.getElementById('job-skills').value.split(',').map(s => s.trim()).filter(s => s),
         description: document.getElementById('job-description').value,
-        requirements: document.getElementById('job-requirements').value,
-        deadline: document.getElementById('job-deadline').value
+        requirements: requirementsArray, // Changed to array
+        companyId: currentUser.id // Add company ID
     };
+    
+    // Add expiry date if deadline is set
+    const deadline = document.getElementById('job-deadline').value;
+    if (deadline) {
+        formData.expiryDate = deadline; // Changed from 'deadline' to 'expiryDate'
+    }
     
     try {
         const response = await fetch(`${API_URL}/jobs`, {
@@ -271,13 +294,16 @@ async function handlePostJob(e) {
             alert('Job posted successfully!');
             e.target.reset();
             loadDashboardData();
+            // Switch to my-jobs page
+            document.querySelector('[data-page="my-jobs"]').click();
         } else {
             const error = await response.json();
-            alert('Error: ' + error.message);
+            alert('Error: ' + (error.message || 'Failed to post job'));
+            console.error('Server error:', error);
         }
     } catch (error) {
         console.error('Error posting job:', error);
-        alert('Error posting job');
+        alert('Error posting job: ' + error.message);
     }
 }
 
