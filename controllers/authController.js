@@ -82,21 +82,27 @@ exports.login = async (req, res) => {
         }
 
         const { email, password } = req.body;
+        console.log('Login attempt for:', email);
 
         // Find user by email
         const user = await User.findOne({ where: { email } });
 
         if (!user) {
+            console.log('User not found:', email);
             return res.status(401).json({
                 success: false,
                 message: 'Invalid credentials'
             });
         }
 
+        console.log('User found:', user.email, 'Role:', user.role);
+
         // Check if password matches
         const isMatch = await user.comparePassword(password);
+        console.log('Password match:', isMatch);
 
         if (!isMatch) {
+            console.log('Password mismatch for:', email);
             return res.status(401).json({
                 success: false,
                 message: 'Invalid credentials'
@@ -106,6 +112,8 @@ exports.login = async (req, res) => {
         // Update last login
         user.lastLogin = new Date();
         await user.save();
+
+        console.log('Login successful for:', email);
 
         // Send token response
         sendTokenResponse(user, 200, res);
