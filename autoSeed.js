@@ -140,9 +140,9 @@ const autoSeed = async () => {
         const jobSeekers = await createJobSeekers();
         const allUsers = [...employers, ...jobSeekers];
         
-        // Use bulkCreate with individualHooks to ensure password hashing
+        // Use bulkCreate WITHOUT hooks since we already hashed passwords
         const createdUsers = await User.bulkCreate(allUsers, { 
-            individualHooks: true,
+            hooks: false,  // Don't run beforeCreate hook since we already hashed
             validate: true 
         });
         console.log(`✅ Created ${createdUsers.length} users (admin + employers + job seekers)`);
