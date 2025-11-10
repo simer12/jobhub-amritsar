@@ -1,6 +1,22 @@
 const { Sequelize } = require('sequelize');
 const path = require('path');
+const fs = require('fs');
 require('dotenv').config();
+
+// Database path
+const dbPath = path.join(__dirname, '..', 'database.sqlite');
+
+// In production, delete old database to force schema recreation (one-time fix for ENUM)
+if (process.env.NODE_ENV === 'production' && process.env.RESET_DB === 'true') {
+    try {
+        if (fs.existsSync(dbPath)) {
+            fs.unlinkSync(dbPath);
+            console.log('🗑️ Old database deleted - will recreate with new schema');
+        }
+    } catch (err) {
+        console.log('ℹ️ Could not delete old database:', err.message);
+    }
+}
 
 // Create Sequelize instance with SQLite
 const sequelize = new Sequelize({
@@ -18,40 +34,11 @@ const connectDB = async () => {
     try {
         await sequelize.authenticate();
         console.log('✅ SQLite Database Connected Successfully');
-        console.log('📍 Database File:', path.join(__dirname, '..', 'database.sqlite'));
+        console.log('📍 Database File:', dbPath);
         
-        // In production on first deploy, force recreate to fix ENUM schema
-        // Check if we need to force sync by trying to query users table
-        let needsForceSync = false;
-        try {
-            const { User } = require('../models');
-            // Try to create a test admin user to see if role ENUM has 'admin'
-            const testResult = await sequelize.query(
-                "SELECT sql FROM sqlite_master WHERE type='table' AND name='users'",
-                { type: sequelize.QueryTypes.SELECT }
-            );
-            
-            if (testResult.length > 0) {
-                const tableSchema = testResult[0].sql;
-                // Check if role ENUM includes 'admin'
-                if (!tableSchema.includes("'admin'")) {
-                    console.log('⚠️ Old schema detected - role ENUM missing admin. Forcing sync...');
-                    needsForceSync = true;
-                }
-            }
-        } catch (err) {
-            console.log('ℹ️ Cannot check schema, will sync normally');
-        }
-        
-        // Sync models - force recreation if needed
-        const shouldForceSync = process.env.FORCE_DB_SYNC === 'true' || needsForceSync;
-        await sequelize.sync({ force: shouldForceSync });
-        
-        if (shouldForceSync) {
-            console.log('✅ Database tables recreated (force sync enabled)');
-        } else {
-            console.log('✅ Database tables synchronized (created missing tables if any)');
-        }
+        // Sync models - this will create tables with correct schema
+        await sequelize.sync();
+        console.log('✅ Database tables synchronized');
 
         // Ensure new permission columns exist on applications table. Some deployments
         // may have an older schema; add missing columns using QueryInterface.
