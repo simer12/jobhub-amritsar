@@ -74,7 +74,7 @@ const createJobs = (employerIds) => [
         description: 'We are looking for a talented Full Stack Developer to join our growing team in Amritsar.',
         requirements: ['3+ years of experience in web development', 'Strong knowledge of React and Node.js'],
         responsibilities: ['Develop and maintain web applications', 'Collaborate with design team'],
-        companyId: employerIds[1],
+        companyId: employerIds[0], // First employer (TechAmr)
         companyName: 'TechAmr Solutions',
         location: { city: 'Amritsar', area: 'Ranjit Avenue', fullAddress: 'TechAmr Solutions, Plot 45, Ranjit Avenue, Amritsar', pincode: '143001' },
         jobType: 'fulltime',
@@ -96,7 +96,7 @@ const createJobs = (employerIds) => [
         description: 'Retail Hub is seeking an experienced Store Manager for our Mall Road branch.',
         requirements: ['5+ years retail experience', 'Team management skills'],
         responsibilities: ['Manage daily store operations', 'Lead and motivate team'],
-        companyId: employerIds[2],
+        companyId: employerIds[1], // Second employer (Retail Hub)
         companyName: 'Retail Hub Amritsar',
         location: { city: 'Amritsar', area: 'Mall Road', fullAddress: 'Retail Hub, Shop 12, Mall Road, Amritsar', pincode: '143001' },
         jobType: 'fulltime',
