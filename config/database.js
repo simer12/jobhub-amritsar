@@ -20,10 +20,16 @@ const connectDB = async () => {
         console.log('✅ SQLite Database Connected Successfully');
         console.log('📍 Database File:', path.join(__dirname, '..', 'database.sqlite'));
         
-        // Sync models (creates tables if they don't exist)
-        // Use a safe approach: create missing tables, then add missing columns explicitly
-        await sequelize.sync();
-        console.log('✅ Database tables synchronized (created missing tables if any)');
+        // Sync models - force recreation in production to ensure schema is updated
+        // This fixes ENUM changes (like adding 'admin' role)
+        const shouldForceSync = process.env.FORCE_DB_SYNC === 'true';
+        await sequelize.sync({ force: shouldForceSync });
+        
+        if (shouldForceSync) {
+            console.log('✅ Database tables recreated (force sync enabled)');
+        } else {
+            console.log('✅ Database tables synchronized (created missing tables if any)');
+        }
 
         // Ensure new permission columns exist on applications table. Some deployments
         // may have an older schema; add missing columns using QueryInterface.
