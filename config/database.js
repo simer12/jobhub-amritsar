@@ -20,9 +20,31 @@ const connectDB = async () => {
         console.log('✅ SQLite Database Connected Successfully');
         console.log('📍 Database File:', path.join(__dirname, '..', 'database.sqlite'));
         
-        // Sync models - force recreation in production to ensure schema is updated
-        // This fixes ENUM changes (like adding 'admin' role)
-        const shouldForceSync = process.env.FORCE_DB_SYNC === 'true';
+        // In production on first deploy, force recreate to fix ENUM schema
+        // Check if we need to force sync by trying to query users table
+        let needsForceSync = false;
+        try {
+            const { User } = require('../models');
+            // Try to create a test admin user to see if role ENUM has 'admin'
+            const testResult = await sequelize.query(
+                "SELECT sql FROM sqlite_master WHERE type='table' AND name='users'",
+                { type: sequelize.QueryTypes.SELECT }
+            );
+            
+            if (testResult.length > 0) {
+                const tableSchema = testResult[0].sql;
+                // Check if role ENUM includes 'admin'
+                if (!tableSchema.includes("'admin'")) {
+                    console.log('⚠️ Old schema detected - role ENUM missing admin. Forcing sync...');
+                    needsForceSync = true;
+                }
+            }
+        } catch (err) {
+            console.log('ℹ️ Cannot check schema, will sync normally');
+        }
+        
+        // Sync models - force recreation if needed
+        const shouldForceSync = process.env.FORCE_DB_SYNC === 'true' || needsForceSync;
         await sequelize.sync({ force: shouldForceSync });
         
         if (shouldForceSync) {
