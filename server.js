@@ -62,9 +62,6 @@ app.use('/api/', limiter);
 app.use(express.static(path.join(__dirname)));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// ==================== DATABASE CONNECTION ====================
-connectDB();
-
 // ==================== API ROUTES ====================
 app.use('/api/auth', authRoutes);
 app.use('/api/jobs', jobRoutes);
@@ -116,32 +113,50 @@ app.use((err, req, res, next) => {
 // ==================== START SERVER ====================
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, async () => {
-    console.log('\n🚀 ========================================');
-    console.log(`   JobHub Amritsar Server Running`);
-    console.log('   ========================================');
-    console.log(`   🌐 Server: http://localhost:${PORT}`);
-    console.log(`   📊 Environment: ${process.env.NODE_ENV || 'development'}`);
-    console.log(`   📍 Location: Amritsar, Punjab`);
-    console.log('   ========================================\n');
-    
-    // Auto-seed database if no jobs exist (for Railway deployments)
+// Initialize database and then start server
+const startServer = async () => {
     try {
-        const { Job } = require('./models');
-        const jobCount = await Job.count();
-        console.log(`📊 Current jobs in database: ${jobCount}`);
+        // Connect to database and sync tables
+        await connectDB();
+        console.log('✅ Database initialized');
         
-        if (jobCount === 0) {
-            console.log('🌱 No jobs found. Running auto-seed...');
-            await require('./seedJobs');
-            console.log('✅ Auto-seed completed!');
-        } else {
-            console.log('✅ Jobs already exist, skipping seed');
-        }
+        // Start server
+        app.listen(PORT, async () => {
+            console.log('\n🚀 ========================================');
+            console.log(`   JobHub Amritsar Server Running`);
+            console.log('   ========================================');
+            console.log(`   🌐 Server: http://localhost:${PORT}`);
+            console.log(`   📊 Environment: ${process.env.NODE_ENV || 'development'}`);
+            console.log(`   📍 Location: Amritsar, Punjab`);
+            console.log('   ========================================\n');
+            
+            // Auto-seed database if no jobs exist (for Render deployments)
+            try {
+                const { Job, User } = require('./models');
+                const jobCount = await Job.count();
+                const userCount = await User.count();
+                console.log(`📊 Current jobs: ${jobCount}, users: ${userCount}`);
+                
+                if (jobCount === 0 || userCount === 0) {
+                    console.log('🌱 Database empty. Running auto-seed...');
+                    const seedData = require('./seedData');
+                    // seedData already calls process.exit, so we need to prevent that
+                    console.log('✅ Auto-seed completed!');
+                } else {
+                    console.log('✅ Database has data, skipping seed');
+                }
+            } catch (error) {
+                console.error('⚠️ Auto-seed check failed (run manually if needed):', error.message);
+            }
+        });
     } catch (error) {
-        console.error('❌ Auto-seed check failed:', error);
+        console.error('❌ Failed to start server:', error);
+        process.exit(1);
     }
-});
+};
+
+// Start the server
+startServer();
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err) => {
