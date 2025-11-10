@@ -130,23 +130,22 @@ const startServer = async () => {
             console.log(`   📍 Location: Amritsar, Punjab`);
             console.log('   ========================================\n');
             
-            // Auto-seed database if no jobs exist (for Render deployments)
+            // Auto-seed database if empty (for Render/Vercel deployments)
             try {
-                const { Job, User } = require('./models');
-                const jobCount = await Job.count();
+                const { User } = require('./models');
                 const userCount = await User.count();
-                console.log(`📊 Current jobs: ${jobCount}, users: ${userCount}`);
+                console.log(`📊 Current users in database: ${userCount}`);
                 
-                if (jobCount === 0 || userCount === 0) {
+                if (userCount === 0) {
                     console.log('🌱 Database empty. Running auto-seed...');
-                    const seedData = require('./seedData');
-                    // seedData already calls process.exit, so we need to prevent that
+                    const autoSeed = require('./autoSeed');
+                    await autoSeed();
                     console.log('✅ Auto-seed completed!');
                 } else {
                     console.log('✅ Database has data, skipping seed');
                 }
             } catch (error) {
-                console.error('⚠️ Auto-seed check failed (run manually if needed):', error.message);
+                console.error('⚠️ Auto-seed check failed:', error.message);
             }
         });
     } catch (error) {
