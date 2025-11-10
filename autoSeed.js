@@ -1,13 +1,20 @@
 const { sequelize, User, Job } = require('./models');
+const bcrypt = require('bcryptjs');
 require('dotenv').config();
 
+// Helper function to hash password
+const hashPassword = async (password) => {
+    const salt = await bcrypt.genSalt(10);
+    return await bcrypt.hash(password, salt);
+};
+
 // Sample employers
-const employers = [
+const createEmployers = async () => [
     {
         name: 'Admin',
         email: 'admin@jobhub.com',
         phone: '9999999999',
-        password: 'admin123',
+        password: await hashPassword('admin123'),
         role: 'admin',
         languagesKnown: ['English', 'Hindi', 'Punjabi'],
         currentLocation: 'Amritsar',
@@ -17,7 +24,7 @@ const employers = [
         name: 'Rajesh Kumar',
         email: 'rajesh@techAmr.com',
         phone: '9876543210',
-        password: 'password123',
+        password: await hashPassword('password123'),
         role: 'employer',
         companyName: 'TechAmr Solutions',
         companySize: '51-200',
@@ -33,7 +40,7 @@ const employers = [
         name: 'Simran Kaur',
         email: 'hr@retailhub.com',
         phone: '9876543211',
-        password: 'password123',
+        password: await hashPassword('password123'),
         role: 'employer',
         companyName: 'Retail Hub Amritsar',
         companySize: '11-50',
@@ -48,12 +55,12 @@ const employers = [
 ];
 
 // Sample job seekers
-const jobSeekers = [
+const createJobSeekers = async () => [
     {
         name: 'Manpreet Kaur',
         email: 'manpreet@example.com',
         phone: '9876543220',
-        password: 'password123',
+        password: await hashPassword('password123'),
         role: 'jobseeker',
         skills: ['JavaScript', 'React', 'Node.js', 'MongoDB'],
         experience: '1-3',
@@ -128,8 +135,16 @@ const autoSeed = async () => {
             return;
         }
 
-        // Create users
-        const createdUsers = await User.bulkCreate([...employers, ...jobSeekers]);
+        // Create users with hashed passwords
+        const employers = await createEmployers();
+        const jobSeekers = await createJobSeekers();
+        const allUsers = [...employers, ...jobSeekers];
+        
+        // Use bulkCreate with individualHooks to ensure password hashing
+        const createdUsers = await User.bulkCreate(allUsers, { 
+            individualHooks: true,
+            validate: true 
+        });
         console.log(`✅ Created ${createdUsers.length} users (admin + employers + job seekers)`);
 
         // Get employer IDs (skip admin at index 0)
