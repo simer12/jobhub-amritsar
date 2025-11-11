@@ -165,10 +165,18 @@ exports.getAmritsarJobs = async (req, res) => {
 // @access  Public
 exports.getJob = async (req, res) => {
     try {
-        const job = await Job.findById(req.params.id)
-            .populate('company', 'name email phone companyName companyLogo companyWebsite companyDescription');
+        console.log('Get job by ID:', req.params.id);
+        
+        const job = await Job.findByPk(req.params.id, {
+            include: [{
+                model: User,
+                as: 'company',
+                attributes: ['id', 'name', 'email', 'phone', 'companyName', 'companyLogo', 'companyWebsite', 'companyDescription']
+            }]
+        });
 
         if (!job) {
+            console.log('Job not found with ID:', req.params.id);
             return res.status(404).json({
                 success: false,
                 message: 'Job not found'
@@ -176,13 +184,17 @@ exports.getJob = async (req, res) => {
         }
 
         // Increment views
-        await job.incrementViews();
+        job.views = (job.views || 0) + 1;
+        await job.save();
+        
+        console.log('Job found:', job.id, job.title);
 
         res.status(200).json({
             success: true,
             data: job
         });
     } catch (error) {
+        console.error('Get job error:', error);
         res.status(500).json({
             success: false,
             message: 'Error fetching job',
@@ -250,7 +262,7 @@ exports.createJob = async (req, res) => {
 // @access  Private (Employer - own jobs)
 exports.updateJob = async (req, res) => {
     try {
-        let job = await Job.findById(req.params.id);
+        let job = await Job.findByPk(req.params.id);
 
         if (!job) {
             return res.status(404).json({
@@ -260,17 +272,15 @@ exports.updateJob = async (req, res) => {
         }
 
         // Make sure user is job owner
-        if (job.company.toString() !== req.user.id && req.user.role !== 'admin') {
+        if (job.companyId !== req.user.id && req.user.role !== 'admin') {
             return res.status(401).json({
                 success: false,
                 message: 'Not authorized to update this job'
             });
         }
 
-        job = await Job.findByIdAndUpdate(req.params.id, req.body, {
-            new: true,
-            runValidators: true
-        });
+        // Update job with new data
+        await job.update(req.body);
 
         res.status(200).json({
             success: true,
@@ -278,6 +288,7 @@ exports.updateJob = async (req, res) => {
             message: 'Job updated successfully'
         });
     } catch (error) {
+        console.error('Update job error:', error);
         res.status(500).json({
             success: false,
             message: 'Error updating job',
@@ -291,7 +302,7 @@ exports.updateJob = async (req, res) => {
 // @access  Private (Employer - own jobs)
 exports.deleteJob = async (req, res) => {
     try {
-        const job = await Job.findById(req.params.id);
+        const job = await Job.findByPk(req.params.id);
 
         if (!job) {
             return res.status(404).json({
@@ -301,20 +312,27 @@ exports.deleteJob = async (req, res) => {
         }
 
         // Make sure user is job owner
-        if (job.company.toString() !== req.user.id && req.user.role !== 'admin') {
+        if (job.companyId !== req.user.id && req.user.role !== 'admin') {
             return res.status(401).json({
                 success: false,
                 message: 'Not authorized to delete this job'
             });
         }
 
-        await job.deleteOne();
+        // Delete associated applications first
+        const { Application } = require('../models');
+        await Application.destroy({
+            where: { jobId: req.params.id }
+        });
+
+        await job.destroy();
 
         res.status(200).json({
             success: true,
             message: 'Job deleted successfully'
         });
     } catch (error) {
+        console.error('Delete job error:', error);
         res.status(500).json({
             success: false,
             message: 'Error deleting job',

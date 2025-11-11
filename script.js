@@ -758,6 +758,22 @@ function openApplicationModal(jobId) {
                     </select>
                 </div>
                 
+                <!-- Resume Upload -->
+                <div class="input-group" style="margin-bottom: 20px;">
+                    <label style="display: flex; align-items: center; gap: 8px; font-weight: 600; color: #fff; margin-bottom: 10px;">
+                        <i class="fas fa-file-upload" style="color: #10b981;"></i>
+                        Upload Resume/CV
+                    </label>
+                    <input type="file" id="app-resume" accept=".pdf,.doc,.docx"
+                        style="padding: 14px 18px; border: 2px solid #e0e0e0; border-radius: 12px; font-size: 15px; 
+                        transition: all 0.3s; width: 100%; box-sizing: border-box; background: white;"
+                        onfocus="this.style.borderColor='#10b981'; this.style.boxShadow='0 0 0 4px rgba(16, 185, 129, 0.1)'"
+                        onblur="this.style.borderColor='#e0e0e0'; this.style.boxShadow='none'">
+                    <small style="color: #999; font-size: 12px; display: block; margin-top: 6px;">
+                        <i class="fas fa-info-circle"></i> PDF, DOC, or DOCX (Max 5MB)
+                    </small>
+                </div>
+                
                 <!-- Cover Letter -->
                 <div class="input-group" style="margin-bottom: 20px;">
                     <label style="display: flex; align-items: center; gap: 8px; font-weight: 600; color: #fff; margin-bottom: 10px;">
@@ -854,30 +870,35 @@ async function handleApplicationSubmit(e) {
         return;
     }
     
-    // Collect form data
-    const applicationData = {
-        name: document.getElementById('app-name').value,
-        email: document.getElementById('app-email').value,
-        phone: document.getElementById('app-phone').value,
-        experience: document.getElementById('app-experience').value,
-        currentLocation: document.getElementById('app-location').value,
-        currentJobTitle: document.getElementById('app-job-title').value,
-        skills: document.getElementById('app-skills').value,
-        education: document.getElementById('app-education').value,
-        coverLetter: document.getElementById('app-cover-letter').value,
-        expectedSalary: document.getElementById('app-salary').value,
-        noticePeriod: document.getElementById('app-notice-period').value
-    };
+    // Use FormData for file upload
+    const formData = new FormData();
+    formData.append('name', document.getElementById('app-name').value);
+    formData.append('email', document.getElementById('app-email').value);
+    formData.append('phone', document.getElementById('app-phone').value);
+    formData.append('experience', document.getElementById('app-experience').value);
+    formData.append('currentLocation', document.getElementById('app-location').value);
+    formData.append('currentJobTitle', document.getElementById('app-job-title').value);
+    formData.append('skills', document.getElementById('app-skills').value);
+    formData.append('education', document.getElementById('app-education').value);
+    formData.append('coverLetter', document.getElementById('app-cover-letter').value);
+    formData.append('expectedSalary', document.getElementById('app-salary').value);
+    formData.append('noticePeriod', document.getElementById('app-notice-period').value);
+    
+    // Add resume file if selected
+    const resumeFile = document.getElementById('app-resume').files[0];
+    if (resumeFile) {
+        formData.append('resume', resumeFile);
+    }
     
     try {
-        console.log('Submitting application with data:', applicationData);
+        console.log('Submitting application with FormData (with resume)');
         const response = await fetch(`${API_URL}/applications/${jobId}`, {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
+                'Authorization': `Bearer ${token}`
+                // Don't set Content-Type - browser will set it with boundary for FormData
             },
-            body: JSON.stringify(applicationData)
+            body: formData
         });
         
         console.log('Response status:', response.status);
@@ -885,7 +906,7 @@ async function handleApplicationSubmit(e) {
         console.log('Response data:', result);
         
         if (response.ok) {
-            showNotification('Application submitted successfully!', 'success');
+            showNotification('✅ Application submitted successfully!', 'success');
             closeApplicationModal();
             closeJobDetailsModal();
             
@@ -897,11 +918,11 @@ async function handleApplicationSubmit(e) {
             });
         } else {
             console.error('Application error response:', result);
-            showNotification(result.message || 'Failed to submit application', 'error');
+            showNotification('❌ ' + (result.message || 'Failed to submit application'), 'error');
         }
     } catch (error) {
         console.error('Application submit error:', error);
-        showNotification('Error submitting application: ' + error.message, 'error');
+        showNotification('❌ Error submitting application: ' + error.message, 'error');
     }
 }
 
