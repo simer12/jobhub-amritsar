@@ -366,6 +366,17 @@ async function applyToJob(jobId) {
             </p>
         `;
         
+        // Pre-fill form with user data if available
+        if (currentUser) {
+            document.getElementById('app-name').value = currentUser.name || '';
+            document.getElementById('app-email').value = currentUser.email || '';
+            document.getElementById('app-phone').value = currentUser.phone || '';
+            document.getElementById('app-experience').value = currentUser.experience || '';
+            document.getElementById('app-location').value = currentUser.currentLocation || 'Amritsar';
+            document.getElementById('app-skills').value = currentUser.skills?.join(', ') || '';
+            document.getElementById('app-education').value = currentUser.education || '';
+        }
+        
         // Show modal
         document.getElementById('applicationModal').style.display = 'flex';
         
@@ -389,12 +400,23 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             
             const jobId = document.getElementById('apply-jobId').value;
-            const coverLetter = document.getElementById('apply-coverLetter').value;
-            const resumeFile = document.getElementById('apply-resume').files[0];
             
-            // Create FormData for file upload
+            // Use FormData for file upload (SAME as home page)
             const formData = new FormData();
-            formData.append('coverLetter', coverLetter);
+            formData.append('name', document.getElementById('app-name').value);
+            formData.append('email', document.getElementById('app-email').value);
+            formData.append('phone', document.getElementById('app-phone').value);
+            formData.append('experience', document.getElementById('app-experience').value);
+            formData.append('currentLocation', document.getElementById('app-location').value);
+            formData.append('currentJobTitle', document.getElementById('app-job-title').value);
+            formData.append('skills', document.getElementById('app-skills').value);
+            formData.append('education', document.getElementById('app-education').value);
+            formData.append('coverLetter', document.getElementById('app-cover-letter').value);
+            formData.append('expectedSalary', document.getElementById('app-salary').value);
+            formData.append('noticePeriod', document.getElementById('app-notice-period').value);
+            
+            // Add resume file if selected
+            const resumeFile = document.getElementById('app-resume').files[0];
             if (resumeFile) {
                 formData.append('resume', resumeFile);
             }
@@ -404,6 +426,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${authToken}`
+                        // Don't set Content-Type - browser will set it with boundary for FormData
                     },
                     body: formData
                 });

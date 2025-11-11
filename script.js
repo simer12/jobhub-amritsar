@@ -770,7 +770,7 @@ function openApplicationModal(jobId) {
                         onfocus="this.style.borderColor='#10b981'; this.style.boxShadow='0 0 0 4px rgba(16, 185, 129, 0.1)'"
                         onblur="this.style.borderColor='#e0e0e0'; this.style.boxShadow='none'">
                     <small style="color: #999; font-size: 12px; display: block; margin-top: 6px;">
-                        <i class="fas fa-info-circle"></i> PDF, DOC, or DOCX (Max 5MB)
+                        <i class="fas fa-info-circle"></i> PDF, DOC, or DOCX (Max 100MB)
                     </small>
                 </div>
                 

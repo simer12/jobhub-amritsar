@@ -633,6 +633,26 @@ async function viewApplicant(appId) {
                     <p style="color: #ccc; line-height: 1.6; margin: 0; white-space: pre-wrap;">${app.coverLetter}</p>
                 </div>` : ''}
                 
+                <!-- Resume/CV -->
+                ${app.resume && app.resume !== 'No resume provided' ? `
+                <div style="background: rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 12px; margin-bottom: 25px; border: 1px solid rgba(255, 255, 255, 0.1);">
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <i class="fas fa-file-pdf" style="color: #ef4444; font-size: 24px;"></i>
+                            <div>
+                                <strong style="color: #fff; display: block;">Resume/CV</strong>
+                                <small style="color: #999;">Uploaded document</small>
+                            </div>
+                        </div>
+                        <a href="/${app.resume}" target="_blank" download
+                            style="padding: 10px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                            color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; 
+                            text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-download"></i> Download Resume
+                        </a>
+                    </div>
+                </div>` : ''}
+                
                 <!-- Application Info -->
                 <div style="background: rgba(255, 255, 255, 0.03); padding: 15px 20px; border-radius: 12px; margin-bottom: 25px;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
