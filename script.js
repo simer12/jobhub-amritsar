@@ -949,7 +949,10 @@ async function handleApplicationSubmit(e) {
             // Add job to applied set
             userAppliedJobIds.add(jobId);
             
-            // Update all apply buttons for this job
+            // Re-render all jobs to update buttons
+            renderJobs();
+            
+            // Also update any buttons in modals
             document.querySelectorAll(`button[onclick*="applyJob(${jobId})"]`).forEach(btn => {
                 btn.textContent = 'Applied ✓';
                 btn.style.background = '#10b981';
@@ -1511,6 +1514,18 @@ window.addEventListener('DOMContentLoaded', () => {
     
     if (token && user && user.name) {
         updateUIForLoggedInUser(user);
+    }
+});
+
+// Re-fetch applications when page becomes visible (user returns from another page)
+document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && getAuthToken()) {
+        fetchUserApplications().then(() => {
+            // Re-render jobs with updated applied status
+            if (currentJobs.length > 0) {
+                renderJobs();
+            }
+        });
     }
 });
 
