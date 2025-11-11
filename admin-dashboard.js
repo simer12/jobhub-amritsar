@@ -216,6 +216,10 @@ async function loadPageData(pageId) {
         case 'access-requests':
             loadAccessRequests();
             break;
+        case 'analytics':
+            const timeframe = document.getElementById('analytics-timeframe')?.value || 7;
+            loadAnalytics(parseInt(timeframe));
+            break;
         case 'logs':
             loadActivityLogs();
             break;
@@ -1366,3 +1370,293 @@ function downloadReport() {
     
     alert('Report downloaded as JSON. For PDF export, you can print this page using your browser.');
 }
+
+// ==================== ANALYTICS FUNCTIONALITY ====================
+
+// Store chart instances
+let acquisitionChart = null;
+let successChart = null;
+let funnelChart = null;
+let revenueChart = null;
+
+// Load analytics when analytics page is shown
+function loadAnalytics(days = 7) {
+    loadUserAcquisition(days);
+    loadJobSuccessRate(days);
+    loadApplicationFunnel(days);
+    loadPlatformGrowth(days);
+}
+
+// User Acquisition Chart
+async function loadUserAcquisition(days) {
+    try {
+        const response = await fetch(`${API_URL}/analytics/user-acquisition?days=${days}`, {
+            headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        const result = await response.json();
+        
+        if (result.success) {
+            const ctx = document.getElementById('acquisitionChart');
+            
+            // Destroy existing chart
+            if (acquisitionChart) {
+                acquisitionChart.destroy();
+            }
+            
+            acquisitionChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: result.data.labels.map(date => {
+                        const d = new Date(date);
+                        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                    }),
+                    datasets: [
+                        {
+                            label: result.data.datasets[0].label,
+                            data: result.data.datasets[0].data,
+                            borderColor: '#818cf8',
+                            backgroundColor: 'rgba(129, 140, 248, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: result.data.datasets[1].label,
+                            data: result.data.datasets[1].data,
+                            borderColor: '#34d399',
+                            backgroundColor: 'rgba(52, 211, 153, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: { color: '#e5e7eb' }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { color: '#9ca3af' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        },
+                        x: {
+                            ticks: { color: '#9ca3af' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        }
+                    }
+                }
+            });
+        }
+    } catch (error) {
+        console.error('Error loading user acquisition:', error);
+    }
+}
+
+// Job Success Rate Chart (Doughnut)
+async function loadJobSuccessRate(days) {
+    try {
+        const response = await fetch(`${API_URL}/analytics/job-success-rate?days=${days}`, {
+            headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        const result = await response.json();
+        
+        if (result.success) {
+            const ctx = document.getElementById('successChart');
+            
+            // Destroy existing chart
+            if (successChart) {
+                successChart.destroy();
+            }
+            
+            successChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: result.data.labels,
+                    datasets: [{
+                        data: result.data.values,
+                        backgroundColor: [
+                            '#fbbf24',
+                            '#60a5fa',
+                            '#818cf8',
+                            '#a78bfa',
+                            '#34d399',
+                            '#f87171'
+                        ],
+                        borderColor: '#1f2937',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { 
+                                color: '#e5e7eb',
+                                padding: 15
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    } catch (error) {
+        console.error('Error loading job success rate:', error);
+    }
+}
+
+// Application Funnel Chart (Bar)
+async function loadApplicationFunnel(days) {
+    try {
+        const response = await fetch(`${API_URL}/analytics/application-funnel?days=${days}`, {
+            headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        const result = await response.json();
+        
+        if (result.success) {
+            const ctx = document.getElementById('funnelChart');
+            
+            // Destroy existing chart
+            if (funnelChart) {
+                funnelChart.destroy();
+            }
+            
+            funnelChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: result.data.labels,
+                    datasets: [{
+                        label: 'Count',
+                        data: result.data.values,
+                        backgroundColor: [
+                            '#818cf8',
+                            '#60a5fa',
+                            '#34d399',
+                            '#fbbf24',
+                            '#f97316',
+                            '#10b981'
+                        ],
+                        borderColor: '#1f2937',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { color: '#9ca3af' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        },
+                        x: {
+                            ticks: { color: '#9ca3af' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        }
+                    }
+                }
+            });
+        }
+    } catch (error) {
+        console.error('Error loading application funnel:', error);
+    }
+}
+
+// Platform Growth Chart (Multi-line)
+async function loadPlatformGrowth(days) {
+    try {
+        const response = await fetch(`${API_URL}/analytics/platform-growth?days=${days}`, {
+            headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        const result = await response.json();
+        
+        if (result.success) {
+            const ctx = document.getElementById('revenueChart');
+            
+            // Destroy existing chart
+            if (revenueChart) {
+                revenueChart.destroy();
+            }
+            
+            revenueChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: result.data.labels.map(date => {
+                        const d = new Date(date);
+                        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                    }),
+                    datasets: [
+                        {
+                            label: result.data.datasets[0].label,
+                            data: result.data.datasets[0].data,
+                            borderColor: '#818cf8',
+                            backgroundColor: 'rgba(129, 140, 248, 0.1)',
+                            tension: 0.4,
+                            fill: false
+                        },
+                        {
+                            label: result.data.datasets[1].label,
+                            data: result.data.datasets[1].data,
+                            borderColor: '#34d399',
+                            backgroundColor: 'rgba(52, 211, 153, 0.1)',
+                            tension: 0.4,
+                            fill: false
+                        },
+                        {
+                            label: result.data.datasets[2].label,
+                            data: result.data.datasets[2].data,
+                            borderColor: '#fbbf24',
+                            backgroundColor: 'rgba(251, 191, 36, 0.1)',
+                            tension: 0.4,
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: { color: '#e5e7eb' }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { color: '#9ca3af' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        },
+                        x: {
+                            ticks: { color: '#9ca3af' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        }
+                    }
+                }
+            });
+        }
+    } catch (error) {
+        console.error('Error loading platform growth:', error);
+    }
+}
+
+// Analytics timeframe change listener
+document.addEventListener('DOMContentLoaded', () => {
+    const analyticsTimeframe = document.getElementById('analytics-timeframe');
+    if (analyticsTimeframe) {
+        analyticsTimeframe.addEventListener('change', (e) => {
+            loadAnalytics(parseInt(e.target.value));
+        });
+    }
+});

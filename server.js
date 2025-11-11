@@ -19,6 +19,7 @@ const dashboardRoutes = require('./routes/dashboard');
 const adminRoutes = require('./routes/admin');
 const notificationRoutes = require('./routes/notifications');
 const reportRoutes = require('./routes/reports');
+const analyticsRoutes = require('./routes/analytics');
 
 const app = express();
 
@@ -75,6 +76,7 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/reports', reportRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 // ==================== SERVE FRONTEND ====================
 app.get('/', (req, res) => {

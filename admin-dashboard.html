@@ -477,19 +477,27 @@
                     <div class="analytics-grid">
                         <div class="card">
                             <h4>User Acquisition</h4>
-                            <canvas id="acquisitionChart"></canvas>
+                            <div style="height: 300px; position: relative;">
+                                <canvas id="acquisitionChart"></canvas>
+                            </div>
                         </div>
                         <div class="card">
-                            <h4>Job Success Rate</h4>
-                            <canvas id="successChart"></canvas>
+                            <h4>Application Status Distribution</h4>
+                            <div style="height: 300px; position: relative;">
+                                <canvas id="successChart"></canvas>
+                            </div>
                         </div>
                         <div class="card">
                             <h4>Application Funnel</h4>
-                            <canvas id="funnelChart"></canvas>
+                            <div style="height: 300px; position: relative;">
+                                <canvas id="funnelChart"></canvas>
+                            </div>
                         </div>
                         <div class="card">
-                            <h4>Revenue Growth</h4>
-                            <canvas id="revenueChart"></canvas>
+                            <h4>Platform Growth Metrics</h4>
+                            <div style="height: 300px; position: relative;">
+                                <canvas id="revenueChart"></canvas>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -650,6 +658,8 @@
         </main>
     </div>
 
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="admin-dashboard.js"></script>
 </body>
 </html>
