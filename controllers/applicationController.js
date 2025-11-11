@@ -561,6 +561,8 @@ exports.grantDetailsAccess = async (req, res) => {
 // @access  Private (Admin)
 exports.getPendingAccessRequests = async (req, res) => {
     try {
+        console.log('Fetching pending access requests...');
+        
         const applications = await Application.findAll({
             where: {
                 detailsAccessRequested: true,
@@ -570,21 +572,26 @@ exports.getPendingAccessRequests = async (req, res) => {
                 {
                     model: Job,
                     as: 'job',
-                    attributes: ['id', 'title', 'companyName']
+                    attributes: ['id', 'title', 'companyName'],
+                    required: false
                 },
                 {
                     model: User,
                     as: 'employer',
-                    attributes: ['id', 'name', 'companyName', 'email']
+                    attributes: ['id', 'name', 'companyName', 'email'],
+                    required: false
                 },
                 {
                     model: User,
                     as: 'applicant',
-                    attributes: ['id', 'name', 'email', 'phone']
+                    attributes: ['id', 'name', 'email', 'phone'],
+                    required: false
                 }
             ],
             order: [['detailsAccessRequestedAt', 'DESC']]
         });
+
+        console.log(`Found ${applications.length} pending access requests`);
 
         res.status(200).json({
             success: true,
@@ -592,6 +599,7 @@ exports.getPendingAccessRequests = async (req, res) => {
             data: applications
         });
     } catch (error) {
+        console.error('Error fetching access requests:', error);
         res.status(500).json({
             success: false,
             message: 'Error fetching access requests',

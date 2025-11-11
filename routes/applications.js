@@ -4,14 +4,14 @@ const applicationController = require('../controllers/applicationController');
 const { protect, authorize } = require('../middleware/auth');
 const upload = require('../middleware/upload');
 
-// @route   POST /api/applications/:jobId
-// @desc    Apply for a job
-// @access  Private (Job seeker)
-router.post('/:jobId', 
+// @route   GET /api/applications/access-requests
+// @desc    Get pending access requests
+// @access  Private (Admin only)
+// NOTE: This must come BEFORE /:id route
+router.get('/access-requests', 
     protect, 
-    authorize('jobseeker'),
-    upload.single('resume'),
-    applicationController.applyForJob
+    authorize('admin'),
+    applicationController.getPendingAccessRequests
 );
 
 // @route   GET /api/applications/my-applications
@@ -41,6 +41,16 @@ router.get('/job/:jobId',
     applicationController.getJobApplications
 );
 
+// @route   POST /api/applications/:jobId
+// @desc    Apply for a job
+// @access  Private (Job seeker)
+router.post('/:jobId', 
+    protect, 
+    authorize('jobseeker'),
+    upload.single('resume'),
+    applicationController.applyForJob
+);
+
 // @route   GET /api/applications/:id
 // @desc    Get single application
 // @access  Private
@@ -67,15 +77,6 @@ router.put('/:id/interview',
     applicationController.scheduleInterview
 );
 
-// @route   DELETE /api/applications/:id
-// @desc    Withdraw application
-// @access  Private (Job seeker - own application)
-router.delete('/:id', 
-    protect, 
-    authorize('jobseeker'),
-    applicationController.withdrawApplication
-);
-
 // @route   POST /api/applications/:id/request-details
 // @desc    Request access to applicant details
 // @access  Private (Employer)
@@ -94,13 +95,13 @@ router.post('/:id/grant-details',
     applicationController.grantDetailsAccess
 );
 
-// @route   GET /api/applications/access-requests
-// @desc    Get pending access requests
-// @access  Private (Admin only)
-router.get('/access-requests', 
+// @route   DELETE /api/applications/:id
+// @desc    Withdraw application
+// @access  Private (Job seeker - own application)
+router.delete('/:id', 
     protect, 
-    authorize('admin'),
-    applicationController.getPendingAccessRequests
+    authorize('jobseeker'),
+    applicationController.withdrawApplication
 );
 
 module.exports = router;
