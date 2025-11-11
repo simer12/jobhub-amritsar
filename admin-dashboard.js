@@ -951,3 +951,408 @@ function viewAllNotifications() {
     alert('View all notifications feature - Coming soon!');
     return false;
 }
+
+// ==================== REPORT GENERATION ====================
+let currentReportData = null;
+
+async function generateReport(reportType) {
+    try {
+        const period = document.getElementById('reportPeriod').value;
+        const reportDisplay = document.getElementById('reportDisplay');
+        const reportTitle = document.getElementById('reportTitle');
+        const reportContent = document.getElementById('reportContent');
+        
+        // Show loading
+        reportContent.innerHTML = '<div style="text-align: center; padding: 40px;"><i class="fas fa-spinner fa-spin" style="font-size: 48px; color: #6366f1;"></i><p style="margin-top: 20px;">Generating report...</p></div>';
+        reportDisplay.style.display = 'block';
+        reportDisplay.scrollIntoView({ behavior: 'smooth' });
+        
+        const response = await fetch(`${API_URL}/reports/${reportType}?period=${period}`, {
+            headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to generate report');
+        }
+        
+        const result = await response.json();
+        currentReportData = result.data;
+        
+        // Update title
+        const titles = {
+            'user-growth': 'User Growth Report',
+            'jobs': 'Jobs Report',
+            'applications': 'Application Analytics Report',
+            'companies': 'Company Performance Report',
+            'platform-overview': 'Platform Overview Report'
+        };
+        reportTitle.textContent = titles[reportType] || 'Report';
+        
+        // Display report based on type
+        switch(reportType) {
+            case 'user-growth':
+                displayUserGrowthReport(result.data);
+                break;
+            case 'jobs':
+                displayJobsReport(result.data);
+                break;
+            case 'applications':
+                displayApplicationsReport(result.data);
+                break;
+            case 'companies':
+                displayCompaniesReport(result.data);
+                break;
+            case 'platform-overview':
+                displayPlatformOverviewReport(result.data);
+                break;
+        }
+    } catch (error) {
+        console.error('Error generating report:', error);
+        document.getElementById('reportContent').innerHTML = 
+            '<div style="text-align: center; padding: 40px; color: #ef4444;"><i class="fas fa-exclamation-circle" style="font-size: 48px;"></i><p style="margin-top: 20px;">Error generating report. Please try again.</p></div>';
+    }
+}
+
+function displayUserGrowthReport(data) {
+    const content = `
+        <div style="padding: 20px;">
+            <div style="background: #f9fafb; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                <h4 style="margin: 0 0 15px 0; color: #1f2937;">Summary (${data.period})</h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                    <div style="background: white; padding: 15px; border-radius: 8px;">
+                        <p style="color: #6b7280; margin: 0; font-size: 14px;">Total New Users</p>
+                        <p style="font-size: 32px; font-weight: bold; color: #6366f1; margin: 5px 0 0 0;">${data.totalUsers}</p>
+                    </div>
+                    ${data.usersByRole.map(role => `
+                        <div style="background: white; padding: 15px; border-radius: 8px;">
+                            <p style="color: #6b7280; margin: 0; font-size: 14px;">${role.role}s</p>
+                            <p style="font-size: 32px; font-weight: bold; color: #10b981; margin: 5px 0 0 0;">${role.count}</p>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+            
+            <h4 style="margin: 20px 0 10px 0;">Daily Growth Trend</h4>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Role</th>
+                        <th>New Users</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${data.dailyGrowth.map(day => `
+                        <tr>
+                            <td>${new Date(day.date).toLocaleDateString()}</td>
+                            <td><span class="status-badge ${day.role}">${day.role}</span></td>
+                            <td>${day.count}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
+    `;
+    document.getElementById('reportContent').innerHTML = content;
+}
+
+function displayJobsReport(data) {
+    const content = `
+        <div style="padding: 20px;">
+            <div style="background: #f9fafb; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                <h4 style="margin: 0 0 15px 0; color: #1f2937;">Summary (${data.period})</h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                    <div style="background: white; padding: 15px; border-radius: 8px;">
+                        <p style="color: #6b7280; margin: 0; font-size: 14px;">Total Jobs Posted</p>
+                        <p style="font-size: 32px; font-weight: bold; color: #6366f1; margin: 5px 0 0 0;">${data.totalJobs}</p>
+                    </div>
+                    <div style="background: white; padding: 15px; border-radius: 8px;">
+                        <p style="color: #6b7280; margin: 0; font-size: 14px;">Average Salary</p>
+                        <p style="font-size: 32px; font-weight: bold; color: #10b981; margin: 5px 0 0 0;">₹${Math.round(data.averageSalary/100000)}L</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                <div>
+                    <h4 style="margin: 0 0 10px 0;">Jobs by Type</h4>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Count</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${data.jobsByType.map(type => `
+                                <tr>
+                                    <td>${type.jobType || 'Not specified'}</td>
+                                    <td>${type.count}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div>
+                    <h4 style="margin: 0 0 10px 0;">Jobs by Work Mode</h4>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Work Mode</th>
+                                <th>Count</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${data.jobsByWorkMode.map(mode => `
+                                <tr>
+                                    <td>${mode.workMode || 'Not specified'}</td>
+                                    <td>${mode.count}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <h4 style="margin: 20px 0 10px 0;">Top 10 Companies</h4>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Company</th>
+                        <th>Jobs Posted</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${data.topCompanies.map((company, index) => `
+                        <tr>
+                            <td>#${index + 1}</td>
+                            <td>${company.companyName || 'Unknown'}</td>
+                            <td>${company.jobCount}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
+    `;
+    document.getElementById('reportContent').innerHTML = content;
+}
+
+function displayApplicationsReport(data) {
+    const content = `
+        <div style="padding: 20px;">
+            <div style="background: #f9fafb; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                <h4 style="margin: 0 0 15px 0; color: #1f2937;">Summary (${data.period})</h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
+                    <div style="background: white; padding: 15px; border-radius: 8px;">
+                        <p style="color: #6b7280; margin: 0; font-size: 14px;">Total Applications</p>
+                        <p style="font-size: 32px; font-weight: bold; color: #6366f1; margin: 5px 0 0 0;">${data.totalApplications}</p>
+                    </div>
+                    <div style="background: white; padding: 15px; border-radius: 8px;">
+                        <p style="color: #6b7280; margin: 0; font-size: 14px;">Hired</p>
+                        <p style="font-size: 32px; font-weight: bold; color: #10b981; margin: 5px 0 0 0;">${data.metrics.hired}</p>
+                    </div>
+                    <div style="background: white; padding: 15px; border-radius: 8px;">
+                        <p style="color: #6b7280; margin: 0; font-size: 14px;">Conversion Rate</p>
+                        <p style="font-size: 32px; font-weight: bold; color: #f59e0b; margin: 5px 0 0 0;">${data.metrics.conversionRate}%</p>
+                    </div>
+                    <div style="background: white; padding: 15px; border-radius: 8px;">
+                        <p style="color: #6b7280; margin: 0; font-size: 14px;">Shortlist Rate</p>
+                        <p style="font-size: 32px; font-weight: bold; color: #8b5cf6; margin: 5px 0 0 0;">${data.metrics.shortlistRate}%</p>
+                    </div>
+                    <div style="background: white; padding: 15px; border-radius: 8px;">
+                        <p style="color: #6b7280; margin: 0; font-size: 14px;">Rejection Rate</p>
+                        <p style="font-size: 32px; font-weight: bold; color: #ef4444; margin: 5px 0 0 0;">${data.metrics.rejectionRate}%</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div>
+                    <h4 style="margin: 0 0 10px 0;">Applications by Status</h4>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Status</th>
+                                <th>Count</th>
+                                <th>Percentage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${data.applicationsByStatus.map(status => `
+                                <tr>
+                                    <td><span class="status-badge ${status.status}">${status.status}</span></td>
+                                    <td>${status.count}</td>
+                                    <td>${((status.count / data.totalApplications) * 100).toFixed(1)}%</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div>
+                    <h4 style="margin: 0 0 10px 0;">Daily Applications</h4>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Applications</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${data.dailyApplications.slice(-10).map(day => `
+                                <tr>
+                                    <td>${new Date(day.date).toLocaleDateString()}</td>
+                                    <td>${day.count}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    `;
+    document.getElementById('reportContent').innerHTML = content;
+}
+
+function displayCompaniesReport(data) {
+    const content = `
+        <div style="padding: 20px;">
+            <div style="background: #f9fafb; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                <h4 style="margin: 0 0 15px 0; color: #1f2937;">Summary (${data.period})</h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                    <div style="background: white; padding: 15px; border-radius: 8px;">
+                        <p style="color: #6b7280; margin: 0; font-size: 14px;">Total Companies</p>
+                        <p style="font-size: 32px; font-weight: bold; color: #6366f1; margin: 5px 0 0 0;">${data.totalCompanies}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <h4 style="margin: 20px 0 10px 0;">Top Performing Companies</h4>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Company</th>
+                        <th>Jobs Posted</th>
+                        <th>Total Applications</th>
+                        <th>Hired</th>
+                        <th>Avg Apps/Job</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${data.companies.map((company, index) => `
+                        <tr>
+                            <td>#${index + 1}</td>
+                            <td>${company.companyName}</td>
+                            <td>${company.totalJobs}</td>
+                            <td>${company.totalApplications}</td>
+                            <td>${company.hiredCount}</td>
+                            <td>${company.avgApplicationsPerJob}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
+    `;
+    document.getElementById('reportContent').innerHTML = content;
+}
+
+function displayPlatformOverviewReport(data) {
+    const content = `
+        <div style="padding: 20px;">
+            <div style="background: #f9fafb; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                <h4 style="margin: 0 0 15px 0; color: #1f2937;">Platform Overview (${data.period})</h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px;">
+                    <div style="background: white; padding: 15px; border-radius: 8px;">
+                        <p style="color: #6b7280; margin: 0; font-size: 14px;">Total Users</p>
+                        <p style="font-size: 32px; font-weight: bold; color: #6366f1; margin: 5px 0 0 0;">${data.overview.totalUsers}</p>
+                        <p style="color: #10b981; font-size: 12px; margin: 5px 0 0 0;">+${data.recentActivity.newUsers} new</p>
+                    </div>
+                    <div style="background: white; padding: 15px; border-radius: 8px;">
+                        <p style="color: #6b7280; margin: 0; font-size: 14px;">Total Jobs</p>
+                        <p style="font-size: 32px; font-weight: bold; color: #10b981; margin: 5px 0 0 0;">${data.overview.totalJobs}</p>
+                        <p style="color: #10b981; font-size: 12px; margin: 5px 0 0 0;">+${data.recentActivity.newJobs} new</p>
+                    </div>
+                    <div style="background: white; padding: 15px; border-radius: 8px;">
+                        <p style="color: #6b7280; margin: 0; font-size: 14px;">Active Jobs</p>
+                        <p style="font-size: 32px; font-weight: bold; color: #f59e0b; margin: 5px 0 0 0;">${data.overview.activeJobs}</p>
+                    </div>
+                    <div style="background: white; padding: 15px; border-radius: 8px;">
+                        <p style="color: #6b7280; margin: 0; font-size: 14px;">Total Applications</p>
+                        <p style="font-size: 32px; font-weight: bold; color: #8b5cf6; margin: 5px 0 0 0;">${data.overview.totalApplications}</p>
+                        <p style="color: #10b981; font-size: 12px; margin: 5px 0 0 0;">+${data.recentActivity.newApplications} new</p>
+                    </div>
+                    <div style="background: white; padding: 15px; border-radius: 8px;">
+                        <p style="color: #6b7280; margin: 0; font-size: 14px;">Success Rate</p>
+                        <p style="font-size: 32px; font-weight: bold; color: #ef4444; margin: 5px 0 0 0;">${data.overview.successRate}%</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div>
+                    <h4 style="margin: 0 0 10px 0;">Users by Role</h4>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Role</th>
+                                <th>Count</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${data.usersByRole.map(role => `
+                                <tr>
+                                    <td><span class="status-badge ${role.role}">${role.role}</span></td>
+                                    <td>${role.count}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div>
+                    <h4 style="margin: 0 0 10px 0;">Platform Metrics</h4>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Metric</th>
+                                <th>Value</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Avg Applications per Job</td>
+                                <td>${data.metrics.avgApplicationsPerJob}</td>
+                            </tr>
+                            <tr>
+                                <td>Avg Jobs per Company</td>
+                                <td>${data.metrics.avgJobsPerCompany}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    `;
+    document.getElementById('reportContent').innerHTML = content;
+}
+
+function downloadReport() {
+    if (!currentReportData) {
+        alert('No report data available');
+        return;
+    }
+    
+    // Convert report to JSON and download
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(currentReportData, null, 2));
+    const downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href", dataStr);
+    downloadAnchorNode.setAttribute("download", `report_${Date.now()}.json`);
+    document.body.appendChild(downloadAnchorNode);
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+    
+    alert('Report downloaded as JSON. For PDF export, you can print this page using your browser.');
+}

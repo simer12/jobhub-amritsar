@@ -395,46 +395,68 @@
                 <div class="card">
                     <div class="card-header">
                         <h3>Generate Reports</h3>
-                        <button class="btn-primary btn-sm" id="generateReportBtn">
-                            <i class="fas fa-download"></i> Generate Report
-                        </button>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <select id="reportPeriod" style="padding: 8px 12px; border-radius: 8px; border: 1px solid #ddd;">
+                                <option value="7">Last 7 days</option>
+                                <option value="30" selected>Last 30 days</option>
+                                <option value="90">Last 90 days</option>
+                                <option value="365">Last Year</option>
+                            </select>
+                        </div>
                     </div>
                     <div class="reports-grid">
                         <div class="report-card">
                             <i class="fas fa-users"></i>
                             <h4>User Growth Report</h4>
                             <p>Analyze user registration trends</p>
-                            <button class="btn-secondary btn-sm">Generate</button>
+                            <button class="btn-secondary btn-sm" onclick="generateReport('user-growth')">
+                                <i class="fas fa-download"></i> Generate
+                            </button>
                         </div>
                         <div class="report-card">
                             <i class="fas fa-briefcase"></i>
                             <h4>Jobs Report</h4>
                             <p>Job posting and performance metrics</p>
-                            <button class="btn-secondary btn-sm">Generate</button>
+                            <button class="btn-secondary btn-sm" onclick="generateReport('jobs')">
+                                <i class="fas fa-download"></i> Generate
+                            </button>
                         </div>
                         <div class="report-card">
                             <i class="fas fa-chart-line"></i>
                             <h4>Application Analytics</h4>
                             <p>Application conversion rates</p>
-                            <button class="btn-secondary btn-sm">Generate</button>
+                            <button class="btn-secondary btn-sm" onclick="generateReport('applications')">
+                                <i class="fas fa-download"></i> Generate
+                            </button>
                         </div>
                         <div class="report-card">
                             <i class="fas fa-building"></i>
                             <h4>Company Performance</h4>
                             <p>Top performing companies</p>
-                            <button class="btn-secondary btn-sm">Generate</button>
-                        </div>
-                        <div class="report-card">
-                            <i class="fas fa-money-bill-wave"></i>
-                            <h4>Revenue Report</h4>
-                            <p>Financial overview and projections</p>
-                            <button class="btn-secondary btn-sm">Generate</button>
+                            <button class="btn-secondary btn-sm" onclick="generateReport('companies')">
+                                <i class="fas fa-download"></i> Generate
+                            </button>
                         </div>
                         <div class="report-card">
                             <i class="fas fa-globe"></i>
                             <h4>Platform Overview</h4>
                             <p>Complete platform statistics</p>
-                            <button class="btn-secondary btn-sm">Generate</button>
+                            <button class="btn-secondary btn-sm" onclick="generateReport('platform-overview')">
+                                <i class="fas fa-download"></i> Generate
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Report Display Area -->
+                    <div id="reportDisplay" style="margin-top: 30px; display: none;">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 id="reportTitle">Report Results</h3>
+                                <button class="btn-primary btn-sm" onclick="downloadReport()">
+                                    <i class="fas fa-download"></i> Download PDF
+                                </button>
+                            </div>
+                            <div id="reportContent"></div>
                         </div>
                     </div>
                 </div>
