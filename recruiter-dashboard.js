@@ -331,6 +331,7 @@ async function loadMyJobs() {
                         <tr>
                             <th>Job Title</th>
                             <th>Type</th>
+                            <th>Salary</th>
                             <th>Applications</th>
                             <th>Posted Date</th>
                             <th>Status</th>
@@ -338,10 +339,18 @@ async function loadMyJobs() {
                         </tr>
                     </thead>
                     <tbody>
-                        ${jobs.map(job => `
+                        ${jobs.map(job => {
+                            let salaryDisplay = 'Not disclosed';
+                            if (job.salary && typeof job.salary === 'object') {
+                                const minLPA = Math.round(job.salary.min / 100000);
+                                const maxLPA = Math.round(job.salary.max / 100000);
+                                salaryDisplay = `₹${minLPA}-${maxLPA} LPA`;
+                            }
+                            return `
                             <tr>
                                 <td><strong>${job.title}</strong></td>
                                 <td>${job.jobType || 'Full-time'}</td>
+                                <td>${salaryDisplay}</td>
                                 <td>${job.applications?.length || job.applicationCount || 0}</td>
                                 <td>${new Date(job.createdAt).toLocaleDateString()}</td>
                                 <td><span class="status-badge ${job.status || 'active'}">${job.status || 'active'}</span></td>
@@ -350,7 +359,8 @@ async function loadMyJobs() {
                                     <button class="btn-danger btn-sm" onclick="deleteJob(${job.id})">Delete</button>
                                 </td>
                             </tr>
-                        `).join('')}
+                        `;
+                        }).join('')}
                     </tbody>
                 </table>
             `;

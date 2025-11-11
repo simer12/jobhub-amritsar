@@ -37,7 +37,18 @@ const Job = sequelize.define('Job', {
     },
     location: {
         type: DataTypes.JSON,
-        allowNull: false
+        allowNull: false,
+        get() {
+            const rawValue = this.getDataValue('location');
+            if (typeof rawValue === 'string') {
+                try {
+                    return JSON.parse(rawValue);
+                } catch (e) {
+                    return rawValue;
+                }
+            }
+            return rawValue;
+        }
     },
     jobType: {
         type: DataTypes.ENUM('fulltime', 'parttime', 'contract', 'internship'),
@@ -67,7 +78,18 @@ const Job = sequelize.define('Job', {
     },
     salary: {
         type: DataTypes.JSON,
-        allowNull: false
+        allowNull: false,
+        get() {
+            const rawValue = this.getDataValue('salary');
+            if (typeof rawValue === 'string') {
+                try {
+                    return JSON.parse(rawValue);
+                } catch (e) {
+                    return rawValue;
+                }
+            }
+            return rawValue;
+        }
     },
     vacancies: {
         type: DataTypes.INTEGER,

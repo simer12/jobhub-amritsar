@@ -406,6 +406,16 @@ async function fetchJobs(filters = {}) {
                     skillsList = job.skills.slice(0, 4);
                 }
                 
+                // Format salary
+                let salaryDisplay = 'Not disclosed';
+                if (job.salary && typeof job.salary === 'object') {
+                    const minLPA = (job.salary.min / 100000).toFixed(1);
+                    const maxLPA = (job.salary.max / 100000).toFixed(1);
+                    salaryDisplay = `₹${minLPA}-${maxLPA} LPA`;
+                } else if (job.salaryRange) {
+                    salaryDisplay = job.salaryRange;
+                }
+                
                 return {
                     id: job.id,
                     title: job.title,
@@ -414,7 +424,7 @@ async function fetchJobs(filters = {}) {
                     type: job.jobType,
                     remote: job.workMode === 'remote',
                     experience: job.experienceRequired,
-                    salary: job.salaryRange || `₹${(job.salary / 100000).toFixed(1)} LPA`,
+                    salary: salaryDisplay,
                     posted: getTimeAgo(job.createdAt),
                     tags: skillsList,
                     companyType: 'corporate',

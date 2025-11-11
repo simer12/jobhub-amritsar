@@ -134,12 +134,29 @@ exports.getJobsReport = async (req, res) => {
             limit: 10
         });
         
-        // Average salary
-        const avgSalary = await Job.findOne({
-            attributes: [
-                [sequelize.fn('AVG', sequelize.col('salary')), 'avgSalary']
-            ]
+        // Calculate average salary (salary is stored as JSON with min/max)
+        const allJobs = await Job.findAll({
+            where: {
+                createdAt: {
+                    [Op.between]: [dateFrom, dateTo]
+                }
+            },
+            attributes: ['salary']
         });
+        
+        let totalSalary = 0;
+        let validSalaryCount = 0;
+        allJobs.forEach(job => {
+            if (job.salary && typeof job.salary === 'object') {
+                const avgJobSalary = (job.salary.min + job.salary.max) / 2;
+                if (!isNaN(avgJobSalary)) {
+                    totalSalary += avgJobSalary;
+                    validSalaryCount++;
+                }
+            }
+        });
+        
+        const averageSalary = validSalaryCount > 0 ? Math.round(totalSalary / validSalaryCount) : 0;
         
         res.json({
             success: true,
@@ -150,7 +167,7 @@ exports.getJobsReport = async (req, res) => {
                 jobsByType,
                 jobsByWorkMode,
                 topCompanies,
-                averageSalary: avgSalary.dataValues.avgSalary || 0
+                averageSalary
             }
         });
     } catch (error) {
