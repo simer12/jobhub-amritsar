@@ -17,6 +17,7 @@ const applicationRoutes = require('./routes/applications');
 const companyRoutes = require('./routes/companies');
 const dashboardRoutes = require('./routes/dashboard');
 const adminRoutes = require('./routes/admin');
+const notificationRoutes = require('./routes/notifications');
 
 const app = express();
 
@@ -71,6 +72,7 @@ app.use('/api/applications', applicationRoutes);
 app.use('/api/companies', companyRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // ==================== SERVE FRONTEND ====================
 app.get('/', (req, res) => {

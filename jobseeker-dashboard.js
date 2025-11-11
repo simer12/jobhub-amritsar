@@ -29,6 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadDashboardData();
     setupNavigation();
     setupEventListeners();
+    loadNotifications(); // Load notifications on page load
 });
 
 // Load user data
@@ -500,12 +501,88 @@ function formatSalary(salary) {
 }
 
 // ==================== NOTIFICATION SYSTEM ====================
+async function loadNotifications() {
+    try {
+        const response = await fetch(`${API_URL}/notifications/jobseeker`, {
+            headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            displayNotifications(result.data, result.unreadCount);
+        }
+    } catch (error) {
+        console.error('Error loading notifications:', error);
+    }
+}
+
+function displayNotifications(notifications, unreadCount) {
+    const notificationList = document.querySelector('.notification-list');
+    const badge = document.querySelector('.notification-btn .badge');
+    
+    // Update badge
+    if (unreadCount > 0) {
+        badge.textContent = unreadCount;
+        badge.style.display = 'block';
+    } else {
+        badge.style.display = 'none';
+    }
+    
+    // Display notifications
+    if (notifications.length === 0) {
+        notificationList.innerHTML = `
+            <div style="padding: 40px 20px; text-align: center; color: #9ca3af;">
+                <i class="fas fa-bell-slash" style="font-size: 48px; margin-bottom: 10px;"></i>
+                <p>No notifications yet</p>
+            </div>
+        `;
+        return;
+    }
+    
+    notificationList.innerHTML = notifications.map(notif => {
+        const timeAgo = getTimeAgo(notif.time);
+        return `
+            <div class="notification-item ${notif.unread ? 'unread' : ''}">
+                <div class="notification-icon ${notif.color}">
+                    <i class="fas ${notif.icon}"></i>
+                </div>
+                <div class="notification-content">
+                    <p><strong>${notif.title}</strong></p>
+                    <p class="notification-text">${notif.message}</p>
+                    <span class="notification-time">${timeAgo}</span>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function getTimeAgo(date) {
+    const seconds = Math.floor((new Date() - new Date(date)) / 1000);
+    const intervals = {
+        year: 31536000,
+        month: 2592000,
+        week: 604800,
+        day: 86400,
+        hour: 3600,
+        minute: 60
+    };
+    
+    for (const [unit, secondsInUnit] of Object.entries(intervals)) {
+        const interval = Math.floor(seconds / secondsInUnit);
+        if (interval >= 1) {
+            return `${interval} ${unit}${interval > 1 ? 's' : ''} ago`;
+        }
+    }
+    return 'just now';
+}
+
 function toggleNotifications() {
     const dropdown = document.getElementById('notificationDropdown');
     dropdown.classList.toggle('active');
     
-    // Close dropdown when clicking outside
+    // Load notifications when opening
     if (dropdown.classList.contains('active')) {
+        loadNotifications();
         setTimeout(() => {
             document.addEventListener('click', closeNotificationsOnClickOutside);
         }, 0);
