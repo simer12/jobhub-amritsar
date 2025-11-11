@@ -363,6 +363,43 @@
         </main>
     </div>
 
+    <!-- Application Modal -->
+    <div id="applicationModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h2><i class="fas fa-paper-plane"></i> Apply for Job</h2>
+                <button class="close-modal" onclick="closeApplicationModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="jobDetailsPreview" class="job-preview-card" style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                    <!-- Job details will be inserted here -->
+                </div>
+                
+                <form id="applicationForm">
+                    <input type="hidden" id="apply-jobId">
+                    
+                    <div class="form-group">
+                        <label>Cover Letter (Optional)</label>
+                        <textarea id="apply-coverLetter" rows="4" placeholder="Write a brief cover letter explaining why you're a good fit for this position..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Resume/CV</label>
+                        <input type="file" id="apply-resume" accept=".pdf,.doc,.docx">
+                        <small style="color: #666; font-size: 12px;">PDF, DOC, or DOCX (Max 5MB)</small>
+                    </div>
+                    
+                    <div class="form-actions" style="display: flex; gap: 10px; margin-top: 20px;">
+                        <button type="button" class="btn-secondary" onclick="closeApplicationModal()">Cancel</button>
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-paper-plane"></i> Submit Application
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script src="jobseeker-dashboard.js"></script>
 </body>
 </html>

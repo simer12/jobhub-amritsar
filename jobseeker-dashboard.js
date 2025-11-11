@@ -343,28 +343,102 @@ function loadInterviews() {
     container.innerHTML = '<p style="text-align: center; color: #666; padding: 40px;">No interviews scheduled</p>';
 }
 
-// Apply to job
+// Apply to job - Open modal
 async function applyToJob(jobId) {
     try {
-        const response = await fetch(`${API_URL}/applications/${jobId}`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${authToken}`,
-                'Content-Type': 'application/json'
+        // Fetch job details
+        const response = await fetch(`${API_URL}/jobs/${jobId}`);
+        if (!response.ok) {
+            alert('Failed to load job details');
+            return;
+        }
+        
+        const result = await response.json();
+        const job = result.data;
+        
+        // Populate modal with job details
+        document.getElementById('apply-jobId').value = jobId;
+        document.getElementById('jobDetailsPreview').innerHTML = `
+            <h3 style="margin: 0 0 10px 0; color: #333;">${job.title}</h3>
+            <p style="margin: 0; color: #666;">
+                <i class="fas fa-building"></i> ${job.companyName} &nbsp;|&nbsp;
+                <i class="fas fa-map-marker-alt"></i> ${job.location?.city || 'Amritsar'}
+            </p>
+        `;
+        
+        // Show modal
+        document.getElementById('applicationModal').style.display = 'flex';
+        
+    } catch (error) {
+        console.error('Error loading job details:', error);
+        alert('Error loading job details');
+    }
+}
+
+// Close application modal
+function closeApplicationModal() {
+    document.getElementById('applicationModal').style.display = 'none';
+    document.getElementById('applicationForm').reset();
+}
+
+// Handle application form submission
+document.addEventListener('DOMContentLoaded', () => {
+    const applicationForm = document.getElementById('applicationForm');
+    if (applicationForm) {
+        applicationForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const jobId = document.getElementById('apply-jobId').value;
+            const coverLetter = document.getElementById('apply-coverLetter').value;
+            const resumeFile = document.getElementById('apply-resume').files[0];
+            
+            // Create FormData for file upload
+            const formData = new FormData();
+            formData.append('coverLetter', coverLetter);
+            if (resumeFile) {
+                formData.append('resume', resumeFile);
+            }
+            
+            try {
+                const response = await fetch(`${API_URL}/applications/${jobId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    alert('✅ Application submitted successfully!');
+                    closeApplicationModal();
+                    loadDashboardData();
+                    loadAppliedJobs();
+                } else {
+                    alert('❌ Error: ' + (result.message || 'Failed to submit application'));
+                }
+            } catch (error) {
+                console.error('Error submitting application:', error);
+                alert('❌ Error submitting application. Please try again.');
             }
         });
-        
-        if (response.ok) {
-            alert('Application submitted successfully!');
-            loadDashboardData();
-        } else {
-            const error = await response.json();
-            alert('Error: ' + error.message);
-        }
-    } catch (error) {
-        console.error('Error applying to job:', error);
-        alert('Error submitting application');
     }
+    
+    // Close modal when clicking outside
+    const modal = document.getElementById('applicationModal');
+    if (modal) {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeApplicationModal();
+            }
+        });
+    }
+});
+
+// Alias function for compatibility
+function loadMyApplications() {
+    loadAppliedJobs();
 }
 
 // Handle resume upload
