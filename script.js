@@ -168,8 +168,39 @@ window.addEventListener('scroll', () => {
     });
 });
 
+// ==================== USER APPLICATIONS TRACKING ====================
+let userAppliedJobIds = new Set();
+
+// Fetch user's applications
+async function fetchUserApplications() {
+    const token = getAuthToken();
+    if (!token) return;
+    
+    try {
+        const response = await fetch(`${API_URL}/applications/my-applications`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            const applications = result.data || [];
+            userAppliedJobIds = new Set(applications.map(app => app.jobId));
+            console.log('User applied job IDs:', Array.from(userAppliedJobIds));
+        }
+    } catch (error) {
+        console.error('Error fetching user applications:', error);
+    }
+}
+
 // ==================== CREATE JOB CARD ====================
 function createJobCard(job) {
+    const isApplied = userAppliedJobIds.has(job.id);
+    const applyButtonHtml = isApplied 
+        ? `<button class="apply-btn" style="background: #10b981;" disabled>Applied ✓</button>`
+        : `<button class="apply-btn" onclick="applyJob(${job.id})">Apply Now</button>`;
+    
     return `
         <div class="job-card" data-type="${job.type}" data-experience="${job.experience}" data-company="${job.companyType}">
             <div class="job-header">
@@ -213,9 +244,7 @@ function createJobCard(job) {
                     <button class="btn-secondary btn-sm" onclick="viewJobDetails(${job.id})" style="padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border-color);">
                         View Details
                     </button>
-                    <button class="apply-btn" onclick="applyJob(${job.id})">
-                        Apply Now
-                    </button>
+                    ${applyButtonHtml}
                 </div>
             </div>
         </div>
@@ -228,6 +257,11 @@ async function viewJobDetails(jobId) {
         const response = await fetch(`${API_URL}/jobs/${jobId}`);
         const result = await response.json();
         const job = result.data || result;
+        
+        const isApplied = userAppliedJobIds.has(job.id);
+        const applyButtonHtml = isApplied 
+            ? `<button class="apply-btn" style="white-space: nowrap; background: #10b981;" disabled>Applied ✓</button>`
+            : `<button class="apply-btn" onclick="applyJob(${job.id})" style="white-space: nowrap;">Apply Now</button>`;
         
         const modal = document.createElement('div');
         modal.id = 'jobDetailsModal';
@@ -245,9 +279,7 @@ async function viewJobDetails(jobId) {
                             <i class="fas fa-map-marker-alt"></i> ${job.location}
                         </p>
                     </div>
-                    <button class="apply-btn" onclick="applyJob(${job.id})" style="white-space: nowrap;">
-                        Apply Now
-                    </button>
+                    ${applyButtonHtml}
                 </div>
                 
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 30px;">
@@ -347,6 +379,10 @@ let isLoading = false;
 async function fetchJobs(filters = {}) {
     try {
         isLoading = true;
+        
+        // Fetch user applications first if logged in
+        await fetchUserApplications();
+        
         const queryParams = new URLSearchParams(filters).toString();
         const url = `${API_URL}/jobs?${queryParams}`;
         console.log('Fetching from URL:', url);
@@ -909,6 +945,9 @@ async function handleApplicationSubmit(e) {
             showNotification('✅ Application submitted successfully!', 'success');
             closeApplicationModal();
             closeJobDetailsModal();
+            
+            // Add job to applied set
+            userAppliedJobIds.add(jobId);
             
             // Update all apply buttons for this job
             document.querySelectorAll(`button[onclick*="applyJob(${jobId})"]`).forEach(btn => {

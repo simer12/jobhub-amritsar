@@ -79,10 +79,74 @@
                         <i class="fas fa-search"></i>
                         <input type="text" placeholder="Search anything...">
                     </div>
-                    <button class="notification-btn">
+                    <button class="notification-btn" onclick="toggleNotifications()">
                         <i class="fas fa-bell"></i>
                         <span class="badge">15</span>
                     </button>
+                    
+                    <!-- Notification Dropdown -->
+                    <div class="notification-dropdown" id="notificationDropdown">
+                        <div class="notification-header">
+                            <h3>Notifications</h3>
+                            <button class="mark-read-btn" onclick="markAllAsRead()">Mark all as read</button>
+                        </div>
+                        <div class="notification-list">
+                            <div class="notification-item unread">
+                                <div class="notification-icon blue">
+                                    <i class="fas fa-user-plus"></i>
+                                </div>
+                                <div class="notification-content">
+                                    <p><strong>New User Registration</strong></p>
+                                    <p class="notification-text">5 new users registered today</p>
+                                    <span class="notification-time">30 minutes ago</span>
+                                </div>
+                            </div>
+                            <div class="notification-item unread">
+                                <div class="notification-icon green">
+                                    <i class="fas fa-briefcase"></i>
+                                </div>
+                                <div class="notification-content">
+                                    <p><strong>New Job Posted</strong></p>
+                                    <p class="notification-text">TechAmr Solutions posted 2 new jobs</p>
+                                    <span class="notification-time">1 hour ago</span>
+                                </div>
+                            </div>
+                            <div class="notification-item unread">
+                                <div class="notification-icon red">
+                                    <i class="fas fa-flag"></i>
+                                </div>
+                                <div class="notification-content">
+                                    <p><strong>Flagged Content</strong></p>
+                                    <p class="notification-text">A job posting was flagged for review</p>
+                                    <span class="notification-time">2 hours ago</span>
+                                </div>
+                            </div>
+                            <div class="notification-item">
+                                <div class="notification-icon yellow">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                </div>
+                                <div class="notification-content">
+                                    <p><strong>System Alert</strong></p>
+                                    <p class="notification-text">Server usage is at 85%</p>
+                                    <span class="notification-time">3 hours ago</span>
+                                </div>
+                            </div>
+                            <div class="notification-item">
+                                <div class="notification-icon purple">
+                                    <i class="fas fa-chart-line"></i>
+                                </div>
+                                <div class="notification-content">
+                                    <p><strong>Weekly Report</strong></p>
+                                    <p class="notification-text">Platform activity increased by 23%</p>
+                                    <span class="notification-time">1 day ago</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="notification-footer">
+                            <a href="#" onclick="viewAllNotifications()">View all notifications</a>
+                        </div>
+                    </div>
+                    
                     <div class="user-menu">
                         <img src="https://ui-avatars.com/api/?name=Admin&background=dc2626&color=fff" alt="Admin">
                         <span>Admin</span>

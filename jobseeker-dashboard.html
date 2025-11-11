@@ -71,10 +71,74 @@
                         <i class="fas fa-search"></i>
                         <input type="text" placeholder="Search jobs...">
                     </div>
-                    <button class="notification-btn">
+                    <button class="notification-btn" onclick="toggleNotifications()">
                         <i class="fas fa-bell"></i>
                         <span class="badge">5</span>
                     </button>
+                    
+                    <!-- Notification Dropdown -->
+                    <div class="notification-dropdown" id="notificationDropdown">
+                        <div class="notification-header">
+                            <h3>Notifications</h3>
+                            <button class="mark-read-btn" onclick="markAllAsRead()">Mark all as read</button>
+                        </div>
+                        <div class="notification-list">
+                            <div class="notification-item unread">
+                                <div class="notification-icon blue">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <div class="notification-content">
+                                    <p><strong>Application Accepted</strong></p>
+                                    <p class="notification-text">Your application for "Frontend Developer" has been accepted!</p>
+                                    <span class="notification-time">2 hours ago</span>
+                                </div>
+                            </div>
+                            <div class="notification-item unread">
+                                <div class="notification-icon green">
+                                    <i class="fas fa-briefcase"></i>
+                                </div>
+                                <div class="notification-content">
+                                    <p><strong>New Job Match</strong></p>
+                                    <p class="notification-text">3 new jobs match your profile!</p>
+                                    <span class="notification-time">5 hours ago</span>
+                                </div>
+                            </div>
+                            <div class="notification-item">
+                                <div class="notification-icon yellow">
+                                    <i class="fas fa-comment"></i>
+                                </div>
+                                <div class="notification-content">
+                                    <p><strong>Interview Scheduled</strong></p>
+                                    <p class="notification-text">Interview for "Backend Developer" on Dec 15, 2024</p>
+                                    <span class="notification-time">1 day ago</span>
+                                </div>
+                            </div>
+                            <div class="notification-item">
+                                <div class="notification-icon red">
+                                    <i class="fas fa-times-circle"></i>
+                                </div>
+                                <div class="notification-content">
+                                    <p><strong>Application Update</strong></p>
+                                    <p class="notification-text">Status changed for "Full Stack Developer"</p>
+                                    <span class="notification-time">2 days ago</span>
+                                </div>
+                            </div>
+                            <div class="notification-item">
+                                <div class="notification-icon purple">
+                                    <i class="fas fa-star"></i>
+                                </div>
+                                <div class="notification-content">
+                                    <p><strong>Profile Views</strong></p>
+                                    <p class="notification-text">Your profile was viewed by 12 employers</p>
+                                    <span class="notification-time">3 days ago</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="notification-footer">
+                            <a href="#" onclick="viewAllNotifications()">View all notifications</a>
+                        </div>
+                    </div>
+                    
                     <div class="user-menu">
                         <img src="https://ui-avatars.com/api/?name=User&background=6366f1&color=fff" alt="User">
                         <span id="userName">Loading...</span>

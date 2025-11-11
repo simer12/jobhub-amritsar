@@ -832,3 +832,45 @@ async function deleteJobAdmin(jobId) {
 function viewApplication(appId) {
     alert('View application details for ID: ' + appId + '\n\n(Application details view coming soon)');
 }
+
+// ==================== NOTIFICATION SYSTEM ====================
+function toggleNotifications() {
+    const dropdown = document.getElementById('notificationDropdown');
+    dropdown.classList.toggle('active');
+    
+    // Close dropdown when clicking outside
+    if (dropdown.classList.contains('active')) {
+        setTimeout(() => {
+            document.addEventListener('click', closeNotificationsOnClickOutside);
+        }, 0);
+    }
+}
+
+function closeNotificationsOnClickOutside(e) {
+    const dropdown = document.getElementById('notificationDropdown');
+    const notificationBtn = document.querySelector('.notification-btn');
+    
+    if (!dropdown.contains(e.target) && !notificationBtn.contains(e.target)) {
+        dropdown.classList.remove('active');
+        document.removeEventListener('click', closeNotificationsOnClickOutside);
+    }
+}
+
+function markAllAsRead() {
+    const unreadItems = document.querySelectorAll('.notification-item.unread');
+    unreadItems.forEach(item => {
+        item.classList.remove('unread');
+    });
+    
+    // Update badge count
+    const badge = document.querySelector('.notification-btn .badge');
+    badge.textContent = '0';
+    badge.style.display = 'none';
+    
+    alert('All notifications marked as read!');
+}
+
+function viewAllNotifications() {
+    alert('View all notifications feature - Coming soon!');
+    return false;
+}
