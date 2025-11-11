@@ -95,30 +95,24 @@ function setupEventListeners() {
 // Load dashboard data
 async function loadDashboardData() {
     try {
-        // Load company's jobs
-        const jobsResponse = await fetch(`${API_URL}/jobs/my-jobs`, {
+        // Load dashboard stats from recruiter dashboard endpoint
+        const dashboardResponse = await fetch(`${API_URL}/dashboard/employer`, {
             headers: { 'Authorization': `Bearer ${authToken}` }
         });
         
-        if (jobsResponse.ok) {
-            const result = await jobsResponse.json();
-            const jobs = result.data || result;
-            document.getElementById('activeJobsCount').textContent = jobs.length;
+        if (dashboardResponse.ok) {
+            const result = await dashboardResponse.json();
+            const stats = result.data.stats;
             
-            // Calculate total applicants
-            let totalApplicants = 0;
-            jobs.forEach(job => {
-                totalApplicants += job.Applications?.length || 0;
-            });
-            document.getElementById('totalApplicantsCount').textContent = totalApplicants;
-            
-            // Load recent applicants
-            loadRecentApplicants();
+            // Update all stat cards with real data
+            document.getElementById('activeJobsCount').textContent = stats.activeJobs || 0;
+            document.getElementById('totalApplicantsCount').textContent = stats.totalApplications || 0;
+            document.getElementById('shortlistedCount').textContent = stats.shortlisted || 0;
+            document.getElementById('jobViewsCount').textContent = stats.totalViews || 0;
         }
         
-        // Update other stats (these would come from real APIs)
-        document.getElementById('shortlistedCount').textContent = '0';
-        document.getElementById('jobViewsCount').textContent = '0';
+        // Load recent applicants
+        loadRecentApplicants();
         
     } catch (error) {
         console.error('Error loading dashboard data:', error);

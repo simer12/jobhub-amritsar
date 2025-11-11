@@ -9,16 +9,17 @@ exports.getJobSeekerNotifications = async (req, res) => {
         const notifications = [];
         const userId = req.user.id;
 
-        // Get recent application status updates
+        // Get recent application status updates for this job seeker
         const applications = await Application.findAll({
-            where: { 
-                userId,
+            where: {
+                applicantId: userId,
                 updatedAt: {
                     [Op.gte]: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) // Last 7 days
                 }
             },
             include: [{
                 model: Job,
+                as: 'job',
                 attributes: ['title']
             }],
             order: [['updatedAt', 'DESC']],
@@ -32,36 +33,40 @@ exports.getJobSeekerNotifications = async (req, res) => {
             let title = 'Application Update';
             let message = '';
 
-            switch(app.status) {
-                case 'accepted':
+            // Map internal statuses to friendly notifications
+            const jobTitle = app.job?.title || 'Unknown Job';
+            switch (app.status) {
+                case 'hired':
                     icon = 'fa-check-circle';
                     color = 'green';
                     title = 'Application Accepted';
-                    message = `Your application for "${app.Job?.title || 'Unknown Job'}" has been accepted!`;
+                    message = `Your application for "${jobTitle}" has been accepted!`;
                     break;
                 case 'rejected':
                     icon = 'fa-times-circle';
                     color = 'red';
                     title = 'Application Update';
-                    message = `Status changed for "${app.Job?.title || 'Unknown Job'}"`;
+                    message = `Status changed for "${jobTitle}"`;
                     break;
                 case 'shortlisted':
                     icon = 'fa-star';
                     color = 'yellow';
                     title = 'Application Shortlisted';
-                    message = `You've been shortlisted for "${app.Job?.title || 'Unknown Job'}"`;
+                    message = `You've been shortlisted for "${jobTitle}"`;
                     break;
-                case 'interview':
+                case 'interview_scheduled':
                     icon = 'fa-comment';
                     color = 'purple';
                     title = 'Interview Scheduled';
-                    message = `Interview scheduled for "${app.Job?.title || 'Unknown Job'}"`;
+                    message = `Interview scheduled for "${jobTitle}"`;
                     break;
+                case 'reviewing':
+                case 'pending':
                 default:
                     icon = 'fa-file-alt';
                     color = 'blue';
-                    title = 'Application Submitted';
-                    message = `Application submitted for "${app.Job?.title || 'Unknown Job'}"`;
+                    title = 'Application Update';
+                    message = `Application updated for "${jobTitle}"`;
             }
 
             notifications.push({
@@ -71,7 +76,7 @@ exports.getJobSeekerNotifications = async (req, res) => {
                 title,
                 message,
                 time: app.updatedAt,
-                unread: app.status !== 'pending'
+                unread: ['hired', 'shortlisted', 'interview_scheduled', 'rejected'].includes(app.status)
             });
         });
 
@@ -124,9 +129,9 @@ exports.getRecruiterNotifications = async (req, res) => {
         const notifications = [];
         const recruiterId = req.user.id;
 
-        // Get recruiter's jobs
+        // Get recruiter's jobs (companyId on Job)
         const recruiterJobs = await Job.findAll({
-            where: { userId: recruiterId },
+            where: { companyId: recruiterId },
             attributes: ['id', 'title', 'expiryDate']
         });
 
@@ -142,9 +147,11 @@ exports.getRecruiterNotifications = async (req, res) => {
             },
             include: [{
                 model: Job,
+                as: 'job',
                 attributes: ['title']
             }, {
                 model: User,
+                as: 'applicant',
                 attributes: ['name']
             }],
             order: [['createdAt', 'DESC']],
@@ -160,7 +167,7 @@ exports.getRecruiterNotifications = async (req, res) => {
                 icon: 'fa-user-check',
                 color: 'blue',
                 title: 'New Application',
-                message: `${app.User?.name || 'Someone'} applied for "${app.Job?.title || 'Unknown Job'}"`,
+                message: `${app.applicant?.name || 'Someone'} applied for "${app.job?.title || 'Unknown Job'}"`,
                 time: app.createdAt,
                 unread: isNew
             });
@@ -181,7 +188,7 @@ exports.getRecruiterNotifications = async (req, res) => {
                 color: 'yellow',
                 title: 'Job Expiring Soon',
                 message: `"${job.title}" expires in ${daysUntilExpiry} day${daysUntilExpiry > 1 ? 's' : ''}`,
-                time: new Date(),
+                time: job.expiryDate || new Date(),
                 unread: true
             });
         });
@@ -189,7 +196,7 @@ exports.getRecruiterNotifications = async (req, res) => {
         // Get application count summary
         const applicationsByJob = {};
         recentApplications.forEach(app => {
-            const jobTitle = app.Job?.title || 'Unknown Job';
+            const jobTitle = app.job?.title || 'Unknown Job';
             applicationsByJob[jobTitle] = (applicationsByJob[jobTitle] || 0) + 1;
         });
 
@@ -271,6 +278,7 @@ exports.getAdminNotifications = async (req, res) => {
             },
             include: [{
                 model: User,
+                as: 'company',
                 attributes: ['name', 'email']
             }],
             order: [['createdAt', 'DESC']],
@@ -280,7 +288,7 @@ exports.getAdminNotifications = async (req, res) => {
         // Group jobs by company
         const jobsByCompany = {};
         recentJobs.forEach(job => {
-            const companyName = job.User?.name || job.companyName || 'Unknown Company';
+            const companyName = job.company?.name || job.companyName || 'Unknown Company';
             if (!jobsByCompany[companyName]) {
                 jobsByCompany[companyName] = {
                     count: 0,

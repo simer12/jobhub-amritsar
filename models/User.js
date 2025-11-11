@@ -67,6 +67,10 @@ const User = sequelize.define('User', {
         type: DataTypes.JSON,
         defaultValue: []
     },
+    profileViews: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0
+    },
     
     // Employer Fields
     companyName: {

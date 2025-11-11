@@ -56,14 +56,17 @@ exports.getEmployerDashboard = async (req, res) => {
 // @access  Private (Job seeker)
 exports.getJobSeekerDashboard = async (req, res) => {
     try {
-        const user = await User.findById(req.user.id)
-            .populate('savedJobs')
-            .populate('appliedJobs');
+        const user = await User.findByPk(req.user.id);
 
         // Get all applications
-        const applications = await Application.find({ jobSeeker: req.user.id })
-            .populate('job', 'title companyName location salary')
-            .sort('-createdAt');
+        const applications = await Application.findAll({
+            where: { userId: req.user.id },
+            include: [{
+                model: Job,
+                attributes: ['title', 'companyName', 'location', 'salary']
+            }],
+            order: [['createdAt', 'DESC']]
+        });
 
         // Calculate stats
         const stats = {
@@ -71,27 +74,38 @@ exports.getJobSeekerDashboard = async (req, res) => {
             pendingApplications: applications.filter(a => a.status === 'pending').length,
             reviewing: applications.filter(a => a.status === 'reviewing').length,
             shortlisted: applications.filter(a => a.status === 'shortlisted').length,
-            interviewed: applications.filter(a => a.status === 'interview_scheduled').length,
+            interviewed: applications.filter(a => a.status === 'interview' || a.status === 'interview_scheduled').length,
             rejected: applications.filter(a => a.status === 'rejected').length,
-            savedJobs: user.savedJobs.length
+            accepted: applications.filter(a => a.status === 'accepted').length,
+            savedJobs: (user.savedJobs || []).length,
+            profileViews: user.profileViews || 0
         };
 
         // Recent jobs
-        const recentJobs = await Job.find({ status: 'active' })
-            .sort('-createdAt')
-            .limit(10)
-            .populate('company', 'companyName companyLogo');
+        const recentJobs = await Job.findAll({
+            where: { status: 'active' },
+            order: [['createdAt', 'DESC']],
+            limit: 10,
+            include: [{
+                model: User,
+                attributes: ['companyName']
+            }]
+        });
 
         // Recommended jobs (simple matching based on skills and location)
         let recommendedJobs = [];
         if (user.skills && user.skills.length > 0) {
-            recommendedJobs = await Job.find({
-                status: 'active',
-                skills: { $in: user.skills },
-                _id: { $nin: user.appliedJobs }
-            })
-            .limit(5)
-            .populate('company', 'companyName companyLogo');
+            recommendedJobs = await Job.findAll({
+                where: { 
+                    status: 'active'
+                },
+                order: [['createdAt', 'DESC']],
+                limit: 5,
+                include: [{
+                    model: User,
+                    attributes: ['companyName']
+                }]
+            });
         }
 
         res.status(200).json({

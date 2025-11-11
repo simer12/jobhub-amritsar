@@ -100,26 +100,35 @@ function setupEventListeners() {
 // Load dashboard data
 async function loadDashboardData() {
     try {
-        // Load applications count
+        // Load dashboard stats from API
+        const dashboardResponse = await fetch(`${API_URL}/dashboard/jobseeker`, {
+            headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        
+        if (dashboardResponse.ok) {
+            const result = await dashboardResponse.json();
+            const stats = result.data.stats;
+            
+            // Update all stat cards
+            document.getElementById('appliedCount').textContent = stats.totalApplications || 0;
+            document.getElementById('savedCount').textContent = stats.savedJobs || 0;
+            document.getElementById('interviewCount').textContent = stats.interviewed || 0;
+            document.getElementById('profileViews').textContent = stats.profileViews || 0;
+        }
+        
+        // Load applications
         const appsResponse = await fetch(`${API_URL}/applications/my-applications`, {
             headers: { 'Authorization': `Bearer ${authToken}` }
         });
         
         if (appsResponse.ok) {
             const applications = await appsResponse.json();
-            document.getElementById('appliedCount').textContent = applications.length;
-            
             // Show recent applications
-            displayRecentApplications(applications.slice(0, 5));
+            displayRecentApplications(applications.data?.slice(0, 5) || applications.slice(0, 5));
         }
         
         // Load recommended jobs
         loadRecommendedJobs();
-        
-        // Update other stats (these would come from real APIs)
-        document.getElementById('savedCount').textContent = '0';
-        document.getElementById('interviewCount').textContent = '0';
-        document.getElementById('profileViews').textContent = '0';
         
     } catch (error) {
         console.error('Error loading dashboard data:', error);
