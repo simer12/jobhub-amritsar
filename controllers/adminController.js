@@ -160,14 +160,38 @@ exports.getAllApplications = async (req, res) => {
         
         const applications = await Application.findAll({
             where,
+            include: [
+                {
+                    model: User,
+                    as: 'applicant',
+                    attributes: ['id', 'name', 'email']
+                },
+                {
+                    model: Job,
+                    as: 'job',
+                    attributes: ['id', 'title', 'companyName']
+                }
+            ],
             order: [['createdAt', 'DESC']],
             limit: 100
         });
         
+        // Format the data for frontend
+        const formattedApplications = applications.map(app => ({
+            id: app.id,
+            jobSeekerName: app.applicant?.name || 'N/A',
+            jobSeekerEmail: app.applicant?.email || 'N/A',
+            jobTitle: app.job?.title || 'N/A',
+            companyName: app.job?.companyName || 'N/A',
+            status: app.status,
+            createdAt: app.createdAt,
+            updatedAt: app.updatedAt
+        }));
+        
         res.status(200).json({
             success: true,
-            count: applications.length,
-            data: applications
+            count: formattedApplications.length,
+            data: formattedApplications
         });
     } catch (error) {
         console.error('Get all applications error:', error);
